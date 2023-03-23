@@ -187,7 +187,7 @@ if (enemies.length < 4) {
         };
         enemies.push(enemy);
     }
-// Draw Enemy
+// Draw Enemy .
 for (let enemy of enemies) {
 context.drawImage(playerImage,
     enemy.width * enemy.frameX,
