@@ -5,6 +5,66 @@ let now;
 let fpsInterval = 50;  // 60fps
 let then = Date.now();
 
+const myArray = [
+    "Arriba Amoeba!.mp3",
+    "Arroz Con Pollo.mp3",
+    "Beachfront Celebration.mp3",
+    "Bricks Instrumental.mp3",
+    "Chan Chan.mp3",
+    "Classical.mp3",
+    "Del Rio Bravo.mp3",
+    "Esskeetit Notification.mp3",
+    "Feel Good Inc Bass Only.mp3",
+    "Feel Good Inc Short Bass.mp3",
+    "Feel Good Inc Short Guitar Strum.mp3",
+    "Feel Good Inc. Bass & Guitar Deep.mp3",
+    "Feel Good Inc. Bass & Guitar.mp3",
+    "Feel Good Inc. Guitar.mp3",
+    "Feel Good Inc..mp3",
+    "Follow Your Face.mp3",
+    "Happy Happy Game Show.mp3",
+    "Hocus Pocus Yodelling.mp3",
+    "Jump Up Superstar Music Box.mp3",
+    "Jump Up Superstar Slowed Music Box.mp3",
+    "K.K. Cruisin'.mp3",
+    "Koopa's Theme Flute.mp3",
+    "Life Could Be a Dream Instrumental Trimmed.mp3",
+    "Life Could Be a Dream Instrumental.mp3",
+    "Life Could Be a Dream Notification.mp3",
+    "Life Could Be a Dream Short Notification 1 1.mp3",
+    "Life Could Be a Dream Short Notification 1.mp3",
+    "Life Could Be a Dream Short Notification.mp3",
+    "Life Could Be a Dream.mp3",
+    "metal music 1.mp3",
+    "Mike Nesmith - Tapioca Tundra.mp3",
+    "Modern Jazz Samba.mp3",
+    "Morning Flower (Reggae Version).mp3",
+    "Mount Lineland.mp3",
+    "My Bubblegum.mp3",
+    "Oswald's Theme.mp3",
+    "Powerful Mario.mp3",
+    "Raving_Rabbids_OST.mp3",
+    "Raving_Rabbids_OST_1.mp3",
+    "Raving_Rabbids_OST_2.mp3",
+    "Sesame Street (Instrumental) Ringtone.mp3",
+    "Sesame Street Short Notification Sound.mp3",
+    "Sesame Street Shorter Ringtone .mp3",
+    "Sesame Street Tiny Notification Sound.mp3",
+    "She Took the Kids Ending.mp3",
+    "Spaz Bridge.mp3",
+    "Star vs. the Forces of Evil - Buff Frog's Theme.mp3",
+    "Tango de Manzana.mp3",
+    "The Walk.mp3",
+    "Theme from Up.mp3",
+    "Tiki Land.mp3",
+    "Verano Sensual.mp3",
+    "Washing Machine Whistling.mp3",
+    "what's poppin'.mp3",
+    "Wii Party Suggestions Music.mp3",
+    "3DS Mii Maker.mp3",
+    "59 Seconds Theme.mp3",
+  ];
+let background_song = myArray[randint(0,myArray.length)];
 
 
 let player = {
@@ -17,12 +77,17 @@ let player = {
     xChange : 0,
     yChange : 0,
     };
+// IMPORTANT TO NOTE:
+// player's body doesn't really start until roughly 9 pixels in
+// it doesn't end until roughly 24 pixels
     
+let enemies = []
+
     let moveLeft = false;
     let moveRight = false;
     let moveUp = false;
     let moveDown = false;
-    // let shoot;
+    let shoot;
     
     let playerImage  = new Image();
     let BackgroundImage = new Image();
@@ -63,16 +128,17 @@ function init() {
     context = canvas.getContext("2d");
     context.imageSmoothingEnabled = false;
 
-    let background_audio = new Audio("/Assets/Audio/Modern Jazz Samba.mp3");
+    let background_audio = new Audio("/Assets/Audio/" + background_song);
     background_audio.play();
     background_audio.addEventListener('ended', () => {
         background_audio.currentTime = 0;
         background_audio.play();
     });
-    console.log("Playing background_audio");
+    console.log("Playing " + background_song);
 
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
+
 
 
     window.addEventListener("keydown", activate, false)
@@ -108,50 +174,95 @@ function draw() {
         
         player.x, player.y, player.width, player.height
 );
+if (enemies.length < 4) {
+    let enemy = {
+        x : randint(0,1) * canvas.width,
+        y : randint(-1,1) * randint(0, canvas.height),
+        width : 106,
+        height : 22,
+        frameX : 0,
+        frameY : 0,
+        xChange : 1,
+        yChange : 1,
+        };
+        enemies.push(enemy);
+    }
+// Draw Enemy
+for (let enemy of enemies) {
+context.drawImage(playerImage,
+    enemy.width * enemy.frameX,
+    enemy.height * enemy.frameY,
+    enemy.width,
+    enemy.height,
+    
+    enemy.x, enemy.y, enemy.width, enemy.height
+);
+}
 
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
         player.frameY = 1;
         player.frameX = (player.frameX + 1) % 8;
+    }
+    // if idle
+    if (!(moveLeft || moveRight || moveUp || moveDown)) {
+        if (shoot == false) {
+        player.frameX = player.frameY = 0;
+    }
+        player.xChange = player.xChange * 0.8;
+        player.yChange = player.yChange * 0.8;
     }
 
     // Update the Player
     player.x += player.xChange;
     player.y += player.yChange;
 
+    // Update Enemy
+    for (let enemy of enemies) {
+    if (enemy.x % player.x < 1) {
+        if (enemy.xChange < 2) {
+        enemy.xChange += 1;
+        }
+    }
+    if (player.x <= enemy.x) {
+        enemy.x -= enemy.xChange;
+    }
+    else if (player.x >= enemy.x) {
+        enemy.x += enemy.xChange;
+    }
+    if (player.y <= enemy.y) {
+        enemy.y -= enemy.yChange;
+    }
+    else if (player.y >= enemy.y) {
+        enemy.y += enemy.yChange;
+    }}
+
+    for (let enemy1 of enemies) {
+        for (let enemy2 of enemies) {
+            if ((enemy1.x + enemy1.height) - enemy2.x < 10) {
+                enemy2.xChange = 0
+            }
+        }
+    }
+    for (let enemy1 of enemies) {
+        for (let enemy2 of enemies) {
+            if (collides(enemy1, enemy2)) {
+                enemy2.xChange = -1
+            }
+        }
+    }
+    function collides(a1, a2) {
+        if (a1.x + a1.height < a2.x || a2.x + a2.height < a1.x || a1.y > a2.y + a2.height || a2.y > a1.y + a1.height) {
+            return false;
+        }
+        else {
+            a1.xChange -= 1;
+            return true;
+        }
+    }
+
     // Physics
     player.xChange = player.xChange * 0.95; // Friction!
     player.yChange = player.yChange * 0.95; // Friction!
-
-    // Hitting the edge of the canvas
-    if (player.x + player.width < 0) {  // Hitting the left edge
-        player.x = canvas.width;  // Come back at the right edge
-    }
-    else if (player.x > canvas.width) { // Hitting the right edge
-        player.x = 0 - player.width;  // Come back at left edge
-    }
-
-
-    if (moveLeft) {
-
-    
-        player.xChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
-    }
-    
-    if (moveRight) {
-    
-    
-        player.xChange += 0.8;
-    }
-    if (moveUp) {
-    console.log("Yes")
-        
-        player.yChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
-    }
-    
-    if (moveDown) {
-    
-        player.yChange += 0.8;
-    }
 
 
     // Stop player from going out of bounds
@@ -161,6 +272,42 @@ function draw() {
     else if ((player.y + player.height) > canvas.height) {
         player.y = canvas.height - player.height
     }
+    // Hitting the edge of the canvas
+        // left side
+    if (player.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+        player.x = canvas.width - 9;  // Come back at the right edge
+    }
+        // right side
+    if (player.x + 9 > canvas.width) { // Hitting the right edge --- similar here
+        player.x = -24;  // Come back at left edge
+    }
+
+
+    if (moveLeft) {
+        player.xChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
+    }
+    if (moveRight) {
+        player.xChange += 0.8;
+    }
+    if (moveUp) {        
+        player.yChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
+    }
+    if (moveDown) {
+        player.yChange += 0.8;
+    }
+    if (shoot) {
+        // shoot = false;
+        
+        player.frameY = 2;
+        player.frameX += 1;
+        if (player.frameX == 12) {
+            shoot = false;
+            player.frameX = 0;
+            fpsInterval = 50;
+        }
+
+    }
+
 }
 
 
@@ -183,7 +330,13 @@ function activate(event) {  // 🟢
         case "ArrowDown":
             moveDown = true;
             break;
-    }
+        case " ":
+            if (shoot != true) {
+            player.frameX = 0;
+            shoot = true;
+            }
+            break;
+        }
 }
 
 function deactivate(event) { // 🔴
@@ -231,3 +384,153 @@ function load_assets(assets, callback_function) {  // Ensures assets (images/aud
     };
 };
 
+
+
+function randint(min, max) {
+    return Math.round(Math.random() * (max-min)) + min;
+}
+
+let css_colors = [
+    "AliceBlue",
+    "AntiqueWhite",
+    "Aqua",
+    "Aquamarine",
+    "Azure",
+    "Beige",
+    "Bisque",
+    "BlanchedAlmond",
+    "Blue",
+    "BlueViolet",
+    "Brown",
+    "BurlyWood",
+    "CadetBlue",
+    "Chartreuse",
+    "Chocolate",
+    "Coral",
+    "CornflowerBlue",
+    "Cornsilk",
+    "Crimson",
+    "Cyan",
+    "DarkBlue",
+    "DarkCyan",
+    "DarkGoldenRod",
+    "DarkGray",
+    "DarkGrey",
+    "DarkGreen",
+    "DarkKhaki",
+    "DarkMagenta",
+    "DarkOliveGreen",
+    "DarkOrange",
+    "DarkOrchid",
+    "DarkRed",
+    "DarkSalmon",
+    "DarkSeaGreen",
+    "DarkSlateBlue",
+    "DarkSlateGray",
+    "DarkSlateGrey",
+    "DarkTurquoise",
+    "DarkViolet",
+    "DeepPink",
+    "DeepSkyBlue",
+    "DimGray",
+    "DimGrey",
+    "DodgerBlue",
+    "FireBrick",
+    "FloralWhite",
+    "ForestGreen",
+    "Fuchsia",
+    "GhostWhite",
+    "Gold",
+    "GoldenRod",
+    "Gray",
+    "Grey",
+    "Green",
+    "GreenYellow",
+    "HoneyDew",
+    "HotPink",
+    "IndianRed",
+    "Indigo",
+    "Khaki",
+    "LavenderBlush",
+    "LawnGreen",
+    "LemonChiffon",
+    "LightBlue",
+    "LightCoral",
+    "LightCyan",
+    "LightGray",
+    "LightGrey",
+    "LightGreen",
+    "LightPink",
+    "LightSalmon",
+    "LightSeaGreen",
+    "LightSkyBlue",
+    "LightSlateGray",
+    "LightSlateGrey",
+    "LightSteelBlue",
+    "LightYellow",
+    "Lime",
+    "LimeGreen",
+    "Linen",
+    "Magenta",
+    "Maroon",
+    "MediumAquaMarine",
+    "MediumBlue",
+    "MediumOrchid",
+    "MediumPurple",
+    "MediumSeaGreen",
+    "MediumSlateBlue",
+    "MediumSpringGreen",
+    "MediumTurquoise",
+    "MediumVioletRed",
+    "MidnightBlue",
+    "MintCream",
+    "MistyRose",
+    "Moccasin",
+    "NavajoWhite",
+    "Navy",
+    "OldLace",
+    "Olive",
+    "OliveDrab",
+    "Orange",
+    "OrangeRed",
+    "Orchid",
+    "PaleGoldenRod",
+    "PaleGreen",
+    "PaleTurquoise",
+    "PaleVioletRed",
+    "PapayaWhip",
+    "PeachPuff",
+    "Peru",
+    "Pink",
+    "Plum",
+    "PowderBlue",
+    "Purple",
+    "Red",
+    "RosyBrown",
+    "RoyalBlue",
+    "SaddleBrown",
+    "Salmon",
+    "SandyBrown",
+    "SeaGreen",
+    "SeaShell",
+    "Sienna",
+    "Silver",
+    "SkyBlue",
+    "SlateBlue",
+    "SlateGray",
+    "Snow",
+    "SpringGreen",
+    "SteelBlue",
+    "Tan",
+    "Teal",
+    "Thistle",
+    "Tomato",
+    "Turquoise",
+    "Violet",
+    "Wheat",
+    "Yellow",
+    "YellowGreen"
+  ]
+
+let random_color = css_colors[randint(1, css_colors.length)];
+document.querySelector(":root").style.cssText = "--random_color: " + random_color;
