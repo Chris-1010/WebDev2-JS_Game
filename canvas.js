@@ -67,6 +67,7 @@ const myArray = [
 let background_song = myArray[randint(0,myArray.length)];
 
 
+
 let player = {
     x : 0,
     y : 0,
@@ -80,20 +81,23 @@ let player = {
 // IMPORTANT TO NOTE:
 // player's body doesn't really start until roughly 9 pixels in
 // it doesn't end until roughly 24 pixels
-    
+
 let enemies = []
 
     let moveLeft = false;
     let moveRight = false;
     let moveUp = false;
     let moveDown = false;
-    let shoot;
+    let shoot = false;
+
+    let enable_collisions = true;
     
     let playerImage  = new Image();
+    let enemyImage  = new Image();
     let BackgroundImage = new Image();
     
-    let tilesPerRow = 6;
-    let tileSize = 16;
+    // let tilesPerRow = 6;
+    // let tileSize = 16;
     
     // let background = [
     // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
@@ -141,12 +145,14 @@ function init() {
 
 
 
+
     window.addEventListener("keydown", activate, false)
     window.addEventListener("keyup", deactivate, false)
 
 
     load_assets([
         {"var": playerImage, "url": "Assets/Player/all.png"},
+        {"var": enemyImage, "url": "Assets/Player/enemy.png"},
         // {"var": BackgroundImage, "url":"tiles.png"}
     ], draw);
 }
@@ -174,10 +180,15 @@ function draw() {
         
         player.x, player.y, player.width, player.height
 );
-if (enemies.length < 4) {
+
+
+if (enemies.length < 10) {
+    setTimeout(function() {
     let enemy = {
-        x : randint(0,1) * canvas.width,
-        y : randint(-1,1) * randint(0, canvas.height),
+        x : randint(-1,1) * canvas.width,
+        y : randint(-50, canvas.height + 50),
+        inner_x : 9,
+        inner_width : 15,
         width : 106,
         height : 22,
         frameX : 0,
@@ -186,17 +197,18 @@ if (enemies.length < 4) {
         yChange : 1,
         };
         enemies.push(enemy);
-    }
-// Draw Enemy .
+    }, 5000);
+}
+// Draw Enemy
 for (let enemy of enemies) {
-context.drawImage(playerImage,
-    enemy.width * enemy.frameX,
-    enemy.height * enemy.frameY,
-    enemy.width,
-    enemy.height,
-    
-    enemy.x, enemy.y, enemy.width, enemy.height
-);
+    context.drawImage(enemyImage,
+        enemy.width * enemy.frameX,
+        enemy.height * enemy.frameY,
+        enemy.width,
+        enemy.height,
+        
+        enemy.x, enemy.y, enemy.width, enemy.height
+    );
 }
 
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
@@ -205,7 +217,9 @@ context.drawImage(playerImage,
     }
     // if idle
     if (!(moveLeft || moveRight || moveUp || moveDown)) {
+        
         if (shoot == false) {
+            console.log("You are idle")
         player.frameX = player.frameY = 0;
     }
         player.xChange = player.xChange * 0.8;
@@ -217,6 +231,11 @@ context.drawImage(playerImage,
     player.y += player.yChange;
 
     // Update Enemy
+    // for (let enemy of enemies) {
+    //     enemy.x += enemy.xChange;
+    //     enemy.y += enemy.yChange;
+    // }
+    // FOLLOW PLAYER
     for (let enemy of enemies) {
     if (enemy.x % player.x < 1) {
         if (enemy.xChange < 2) {
@@ -236,29 +255,47 @@ context.drawImage(playerImage,
         enemy.y += enemy.yChange;
     }}
 
+    
+
+    //COLLIDING
+    
     for (let enemy1 of enemies) {
+        console.log("testing " + enemy1)
         for (let enemy2 of enemies) {
-            if ((enemy1.x + enemy1.height) - enemy2.x < 10) {
-                enemy2.xChange = 0
+            console.log("testing with " + enemy2)
+            if (enemy1 == enemy2) {
+                break;
             }
-        }
-    }
-    for (let enemy1 of enemies) {
-        for (let enemy2 of enemies) {
+            if (enable_collisions) {
             if (collides(enemy1, enemy2)) {
-                enemy2.xChange = -1
+                console.log("Collision!")
+                // What to do! 🔴🔴🔴
+                enemy1.x = enemy1.xChange * -1;
+                enemies.pop(enemy2)
             }
         }
     }
-    function collides(a1, a2) {
-        if (a1.x + a1.height < a2.x || a2.x + a2.height < a1.x || a1.y > a2.y + a2.height || a2.y > a1.y + a1.height) {
+}
+
+    function collides(e1, e2) {
+        disableCollisions();
+        if (((e1.x + e1.inner_width) < e2.x) || ((e2.x + e2.inner_width) < e1.x) || (e1.y > (e2.y + e2.height)) || (e2.y > (e1.y + e1.height))) {
             return false;
         }
         else {
-            a1.xChange -= 1;
             return true;
         }
     }
+
+    function enableCollisions() {
+        enable_collisions = true;
+    }
+    function disableCollisions() {
+        enable_collisions = false;
+        
+        // Wait for some time before enabling collisions again
+        setTimeout(enableCollisions, 50);
+      }
 
     // Physics
     player.xChange = player.xChange * 0.95; // Friction!
@@ -281,6 +318,21 @@ context.drawImage(playerImage,
     if (player.x + 9 > canvas.width) { // Hitting the right edge --- similar here
         player.x = -24;  // Come back at left edge
     }
+/////
+for(let enemy of enemies) {
+    // Hitting the edge of the canvas
+        // left side
+    if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+        enemy.x = canvas.width - 9;  // Come back at the right edge
+    }
+        // right side
+    if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
+        enemy.x = -24;  // Come back at left edge
+    }
+}
+//////
+
+
 
 
     if (moveLeft) {
@@ -297,7 +349,7 @@ context.drawImage(playerImage,
     }
     if (shoot) {
         // shoot = false;
-        
+        console.log("Shoot = " + shoot)
         player.frameY = 2;
         player.frameX += 1;
         if (player.frameX == 12) {

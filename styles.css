@@ -18,7 +18,7 @@ body {
 }
   
 canvas {
-  background: #470000;
+  background: var(--random_color);
   grid-column: 2;
   grid-row: 2;
   width: 100%;
