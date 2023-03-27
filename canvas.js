@@ -2,7 +2,7 @@ let canvas;
 let context;
 
 let now;
-let fpsInterval = 50;  // 60fps
+let fpsInterval;  // 60fps
 let then = Date.now();
 
 const myArray = [
@@ -66,11 +66,31 @@ const myArray = [
   ];
 let background_song = myArray[randint(0,myArray.length)];
 
+let terrain_background = [[73,19,85,59,59,59,59,72,84,21,60,86,86,60,86,86,73,73,73,86,19,58,84,59,59,71,85,58,84,71],
+                          [73,73,61,59,85,71,72,71,59,24,60,86,73,86,60,86,86,86,73,60,19,84,58,59,59,59,59,84,12,85],
+                          [60,73,60,61,36,46,46,46,46,22,60,86,73,60,60,60,60,73,73,60,19,59,59,59,59,59,59,59,25,72],
+                          [60,73,86,60,22,85,58,84,71,21,60,73,60,60,73,73,60,86,73,86,19,59,59,59,59,59,59,84,24,46],
+                          [73,86,86,86,61,85, 9,46,47,21,60,60,86,60,60,60,60,60,73,60,19,58,58,59,59,72,58,59,25,71],
+                          [60,86, 6, 7, 8,77,25,59,84,21,86,86,73,86,60,60,73,73,86,86,19,59,59,59,59,72,59,59,25,71],
+                          [60,73,19,20,21,19,25,59,58,89, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,90,59,59,59,59,85,59,59,25,71],
+                          [73,73,32,33,34,24,10,46,11,59,72,72,59,59,84,58,59,59,59,59,59,59,59,59,59,59,59,58,25,85],
+                          [73,86,86,60, 7,90,59,59,25,59,72,58,59,59,59,59,59,59,59,59,72,58, 9,46,46,46,47,59,25,58],
+                          [ 7,49,73,73,84,59,59,71,24,46,46,46,46,46,11,59,59,84,85,59,58,71,25,59,58,71,84,59,25,84],
+                          [23,21,86,73,77,58,71,59,25,72,59,59,59, 9,10,47,59,59,59,59,85,59,25,59,71,59,59,59,25,85],
+                          [46,22,60,60,19,59,59,59,25,59,59,59,59,25,59,59,59,59,59,59,59,59,25,59,59,85,84,59,25,72],
+                          [46,22,86,73,90,59,59,59,38,59,59,84,59,25,71,72,59,59,59,72,59,59,25,71,59,59,84,59,25,58],
+                          [23,35, 8,48,84,85,59,72,59,59,59,59,59,24,46,46,46,46,46,46,46,46,22,58,84,59,59,59,25,85],
+                          [33,33,34,19,59,71,84,59,58,71,85,84,59,25,59,59,59,59,85,85,72,59,35,46,46,46,46,46,22,58],
+                          [ 7, 7, 7,64,59,59,59,84,59,71,58,71,85,25,72,58,85,59,59,59,59,59,59,59,59,84,59,59,25,59]]
 
+let tilesPerRow = 13;
+let tileSize = 16;
 
 let player = {
     x : 0,
     y : 0,
+    inner_x : 9,
+    inner_width : 15,
     width : 106,
     height : 22,
     frameX : 0,
@@ -89,49 +109,26 @@ let enemies = []
     let moveUp = false;
     let moveDown = false;
     let shoot = false;
+    let counter = 0;
+    let cooldown = "off";
+    let winner = false;
     
 
     let enable_collisions = true;
     
     let playerImage  = new Image();
     let enemyImage  = new Image();
-    let enemy_amount = 10;
+    let enemy_amount = 5;
 
     let BackgroundImage = new Image();
-    
-    // let tilesPerRow = 6;
-    // let tileSize = 16;
-    
-    // let background = [
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
-    // [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    // [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    // ]
+
 
 
 
 document.addEventListener("DOMContentLoaded", init, false)
 
 function init() {
-    canvas = document.querySelector("canvas");  // Looks for the tag 'canvas'
+    canvas = document.getElementById("inner");
     context = canvas.getContext("2d");
     context.imageSmoothingEnabled = false;
 
@@ -156,12 +153,13 @@ function init() {
     load_assets([
         {"var": playerImage, "url": "Assets/Player/all.png"},
         {"var": enemyImage, "url": "Assets/Player/enemy.png"},
-        // {"var": BackgroundImage, "url":"tiles.png"}
+        {"var": BackgroundImage, "url":"Assets/Tileset/Minipack/tiles.png"}
     ], draw);
 }
 function draw() {
     window.requestAnimationFrame(draw);
 
+    fpsInterval = 50;
     let now = Date.now();
     let elapsed = now - then;
     if (elapsed <= fpsInterval) {
@@ -172,6 +170,26 @@ function draw() {
 
     // Draw background on canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let r = 0; r < terrain_background.length; r += 1) {
+        for (let c = 0; c < terrain_background[0].length; c += 1) {
+            let tile = terrain_background[r][c];
+            if (tile >= 0) {
+                let tileRow = Math.floor(tile / tilesPerRow);
+                let tileCol = Math.floor(tile % tilesPerRow);
+                context.drawImage(BackgroundImage,
+                                  tileCol * tileSize,
+                                  tileRow * tileSize,
+                                  tileSize,
+                                  tileSize,
+                                  
+                                  c * tileSize,
+                                  r * tileSize,
+                                  tileSize,
+                                  tileSize);
+            }
+        }
+    }
 
 
     // Draw Player
@@ -202,9 +220,10 @@ if (enemies.length <= enemy_amount) {
         enemies.push(enemy);
     }, 5000);
 }
-    else {
-        enemies.pop();
-    }
+else if (enemies.length == 0 && winner == false) {
+    win();
+}
+
 
 // Draw Enemy
 
@@ -227,7 +246,6 @@ for (let enemy of enemies) {
     if (!(moveLeft || moveRight || moveUp || moveDown)) {
         
         if (shoot == false) {
-            console.log("You are idle")
         player.frameX = player.frameY = 0;
     }
         player.xChange = player.xChange * 0.8;
@@ -266,25 +284,19 @@ for (let enemy of enemies) {
     
 
     //COLLIDING
-    
-    for (let enemy1 of enemies) {
-        console.log("testing " + enemy1)
-        for (let enemy2 of enemies) {
-            console.log("testing with " + enemy2)
-            if (enemy1 == enemy2) {
-                break;
-            }
+for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
+        for (let enemy2 = enemy1 + 1; enemy2 < enemies.length; enemy2 += 1) {
             if (enable_collisions) {
-            if (collides(enemy1, enemy2)) {
-                console.log("Collision!")
-                // What to do! 🔴🔴🔴
-                enemy1.x = enemy1.xChange * -1;
-                enemies.pop(enemy2);
-                enemy_amount -= 1;
+                if (collides(enemies[enemy1], enemies[enemy2])) {
+                    console.log("Collision!")
+                    // What to do! 🔴🔴🔴
+                    enemies[enemy1].xChange = enemies[enemy1].xChange * -1;
+                    // enemy_amount -= 1;
+                }
             }
-        }
     }
 }
+
 
     function collides(e1, e2) {
         disableCollisions();
@@ -356,19 +368,47 @@ for(let enemy of enemies) {
     if (moveDown) {
         player.yChange += 0.8;
     }
-    if (shoot) {
-        // shoot = false;
+
+    if (shoot != false) {
         console.log("Shoot = " + shoot)
-        player.frameY = 2;
-        player.frameX += 1;
+        if (shoot == "beam" && cooldown != "on") {
+            player.frameY = 2;
+            
+            if (player.frameX < 6) {
+                counter += 1;
+                if (counter == 1 || counter % 4 == 0) {
+                    player.frameX += 1;
+                }
+            }
+            else if (player.frameX == 6) {
+                player.frameX = 7;
+                enemy_hit();
+            }
+            else if (player.frameX == 7) {
+                player.frameX = 6;
+                enemy_hit();
+            }
+        
+        
         if (player.frameX == 12) {
             shoot = false;
+            cooldown = "on";
             player.frameX = 0;
-            fpsInterval = 50;
+        }
         }
 
+        else if (shoot == "wind_down") {
+            if (player.frameX > 0) {
+                counter -= 1
+                player.frameX -= 1;
+            }
+            else {
+                shoot = false;
+            }
+        }
     }
 
+    // END OF DRAW
 }
 
 
@@ -379,24 +419,31 @@ function activate(event) {  // 🟢
 
     switch (key) {
         case "ArrowLeft":
+            if (shoot != "beam") {
             moveLeft = true;
+            }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
+            if (shoot != "beam") {
             moveRight = true;
-            break;
-        case "ArrowUp":
-            console.log("Yup")
-            moveUp = true;
-            break;
-        case "ArrowDown":
-            moveDown = true;
-            break;
-        case " ":
-            if (shoot != true) {
-            player.frameX = 0;
-            shoot = true;
             }
             break;
+        case "ArrowUp":
+            if (shoot != "beam") {
+            moveUp = true;
+            }
+            break;
+        case "ArrowDown":
+            if (shoot != "beam") {
+            moveDown = true;
+            }
+            break;
+        case " ":
+            
+            if (shoot == false) {
+            moveUp = moveRight = moveLeft = moveDown = false;
+            shoot = "beam";
+            }
         }
 }
 
@@ -417,9 +464,32 @@ function deactivate(event) { // 🔴
         case "ArrowDown":
             moveDown = false;
             break;
+        case " ":
+        if (shoot == "beam") {
+            counter = 10;
+            shoot = "wind_down";
+        }    
     }
 }
 
+function enemy_hit() {
+    console.log("enemy_hit function reached")
+    for (let enemy of enemies) {
+        if (   ( (enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) ) && ( (enemy.y > player.y && (enemy.y < (player.y + player.height))) || ( (enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y) ) )   ) {
+            //if   (top left of enemy's body > top right of player's body                    and               right of enemy's body           <  right of player's box)       and  top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
+            //if enemy's body is between the x-plane area where the player's beam starts and ends                                                                              AND  y-plane area
+            console.log("DIRECT HIT!");
+            enemies.pop(enemy);
+            enemy_amount -= 1;
+        }
+    }
+}
+
+function win() {
+    winner = true;
+    let canvas2 = document.getElementById("outer");
+    let context2 = canvas2.getContext("2d");
+}
 
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run

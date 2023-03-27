@@ -5,8 +5,8 @@ html {
   
 body {
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  grid-template-rows: 1fr 2fr 1fr;
+  grid-template-columns: 1fr 906px 1fr;
+  grid-template-rows: 1fr 512px 1fr;
   height: 100%;
   width: 100%;
   background: linear-gradient(120deg,black,rebeccapurple,cyan);
@@ -17,12 +17,22 @@ body {
   border-image-slice: 1;
 }
   
-canvas {
-  background: #470000;
+#inner {
+  background: var(--random_color);
   grid-column: 2;
   grid-row: 2;
+  height: 100%;
   width: 100%;
   box-sizing: border-box;
   border: 10px solid white;
   box-shadow: 0 0 3em white;
+}
+
+#outer {
+  grid-column: 1/4;
+  grid-row: 1/4;
+  background: none;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
 }
