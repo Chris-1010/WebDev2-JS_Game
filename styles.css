@@ -12,6 +12,15 @@ body {
   background: linear-gradient(120deg,black,rebeccapurple,cyan);
   margin: 0;
   border: 20px solid;
+  border-bottom-width: 50px;
+
+
+  /* content: "Hello";
+  content-visibility: visible;
+  align-content: end;
+  justify-content: center; */
+
+
   box-sizing: border-box;
   border-image: linear-gradient(45deg,red,blue);
   border-image-slice: 1;

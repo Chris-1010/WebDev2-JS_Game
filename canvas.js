@@ -83,9 +83,10 @@ let player = {
     width: 106,
     height: 22,
     frameX: 0,
-    frameY: 0,
+    frameY: 1,
     xChange: 0,
     yChange: 0,
+    turned: false
 };
 // IMPORTANT TO NOTE:
 // player's body doesn't really start until roughly 9 pixels in
@@ -107,7 +108,7 @@ let enable_collisions = true;
 
 let playerImage = new Image();
 let enemyImage = new Image();
-let enemy_amount = 5;
+let enemy_amount = 1;
 
 let BackgroundImage = new Image();
 
@@ -242,16 +243,30 @@ function draw() {
 
     // Moving
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
-        player.frameY = 1;
+        player.frameY = 1
+        if (player.turned) {
+            player.frameY = 6;
+        }
         player.frameX = (player.frameX + 1) % 8;
     }
     // if idle
     if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
-
         if (shoot == false) {
-            player.frameX = player.frameY = 0;
+
+        player.frameY = 0;
+        if (player.turned) {
+            player.frameY = 5;
         }
-        player.xChange = player.xChange * 0.8;
+
+
+        
+            counter += 1;
+            if (counter % 3 == 0) {
+            player.frameX = (player.frameX + 1) % 5;
+            }
+        }
+
+        player.xChange = player.xChange * 0.8; // Friction increased when stopped
         player.yChange = player.yChange * 0.8;
     }
 
@@ -259,30 +274,28 @@ function draw() {
     player.x += player.xChange;
     player.y += player.yChange;
 
+
     // Update Enemy
+    // linear motion
     // for (let enemy of enemies) {
     //     enemy.x += enemy.xChange;
     //     enemy.y += enemy.yChange;
     // }
+
     // FOLLOW PLAYER
     for (let enemy of enemies) {
-        if (enemy.x % player.x < 1) {
-            if (enemy.xChange < 2) {
-                enemy.xChange += 1;
-            }
-        }
 
-        if (player.x <= enemy.x) {
+        if (player.x + player.inner_x + player.inner_width <= enemy.x + enemy.inner_x) {
             enemy.x -= enemy.xChange;
         }
-        else if (player.x >= enemy.x) {
+        else if (player.x + player.inner_x >= enemy.x + enemy.inner_x + enemy.inner_width) {
             enemy.x += enemy.xChange;
         }
 
-        if (player.y <= enemy.y) {
+        if (player.y + player.height <= enemy.y) {
             enemy.y -= enemy.yChange;
         }
-        else if (player.y >= enemy.y) {
+        else if (player.y >= enemy.y + enemy.height) {
             enemy.y += enemy.yChange;
         }
     }
@@ -325,8 +338,8 @@ function draw() {
     }
 
     // Physics
-    player.xChange = player.xChange * 0.95; // Friction!
-    player.yChange = player.yChange * 0.95; // Friction!
+    player.xChange = player.xChange * 0.95; // Friction again
+    player.yChange = player.yChange * 0.95;
 
 
     // Stop player from going out of bounds
@@ -338,12 +351,12 @@ function draw() {
     }
     // Hitting the edge of the canvas
     // left side
-    if (player.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+    if (player.x + player.inner_x + player.inner_width < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
         player.x = canvas.width - player.inner_x;  // Come back at the right edge
     }
     // right side
-    if (player.x + 9 > canvas.width) { // Hitting the right edge --- similar here
-        player.x = -24;  // Come back at left edge
+    if (player.x + player.inner_x > canvas.width) { // Hitting the right edge --- similar here
+        player.x = -(player.inner_x + player.inner_width);  // Come back at left edge
     }
 
 
@@ -364,13 +377,15 @@ function draw() {
 
 
     if (moveLeft) {
-        player.xChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+        turn("left", player);
+        player.xChange -= 0.8;  // Acceleration!
     }
     if (moveRight) {
+        turn("right", player);
         player.xChange += 0.8;
     }
     if (moveUp) {
-        player.yChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+        player.yChange -= 0.8;
     }
     if (moveDown) {
         player.yChange += 0.8;
@@ -379,7 +394,12 @@ function draw() {
     if (shoot != false) {
         console.log("Shoot = " + shoot)
         if (shoot == "beam" && cooldown != "on") {
-            player.frameY = 2;
+            if (player.turned == false) {
+                player.frameY = 2;
+            }
+            else if (player.turned) {
+                player.frameY = 7;
+            }
 
             if (player.frameX < 6) {
                 counter += 1;
@@ -415,21 +435,7 @@ function draw() {
         }
     }
 
-    function save_player_object(player) {
-        updated_player = {
-            x: player.x,
-            y: player.y,
-            inner_x: 9,
-            inner_width: 15,
-            width: 106,
-            height: 22,
-            frameX: 0,
-            frameY: 0,
-            xChange: player.xChange,
-            yChange: player.yChange,
-        };
-        return updated_player;
-    }
+
 
     // END OF DRAW()
 }
@@ -494,22 +500,60 @@ function deactivate(event) { // 🔴
     }
 }
 
+function turn(position, state) {
+    if (position == "left") {
+        if (state.turned == true) {
+            console.log("player is already turned so will not move them")
+        }
+        else if (state.turned == false) {
+            console.log("moving player")
+            state.x -= state.width - state.inner_x - state.inner_width;
+        }
+
+        state.turned = true;
+        state.frameY = 6;
+        state.inner_x = 80;
+    }
+    else if (position == "right") {
+        if (state.turned == false) {
+            console.log("player is already turned right so will not move them")
+        }
+        else if (state.turned == true) {
+            state.x += state.inner_x;
+        }
+
+        state.turned = false;
+        state.frameY = 1;
+        state.inner_x = 9;
+    }
+}
+
 function enemy_hit() {
     console.log("enemy_hit function reached")
     for (let enemy of enemies) {
-        if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width))) && ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))) {
-            //if   (top left of enemy's body > top right of player's body                    and               right of enemy's body           <  right of player's box)       and  top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
-            //if enemy's body is between the x-plane area where the player's beam starts and ends                                                                              AND  y-plane area
-            console.log("DIRECT HIT!");
-            enemies.pop(enemy);
-            enemy_amount -= 1;
+        if (player.turned == false) {
+            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width))) && ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))) {
+                //if   (left of enemy's body > right of player's body                    and               right of enemy's body           <  right of player's box)       and  top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
+                //if enemy's body is between the x-plane area where the player's beam starts and ends                                                                              AND  y-plane area
+                console.log("DIRECT HIT!");
+                enemies.pop(enemy);
+                enemy_amount -= 1;
+            }
+        }
+        else if (player.turned) {
+            if ((      (enemy.x + enemy.inner_x) > player.x && (enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x))            &&              ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))          ) {
+                //if   (left of enemy's body > the far left of player's box(beam) and right of enemy's body < start of beam                            and              top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
+                //if enemy's body is between the x-plane area where the player's beam starts and ends                                                  and              y-plane area
+                console.log("DIRECT HIT!");
+                enemies.pop(enemy);
+                enemy_amount -= 1;
+            }
         }
     }
 }
 
 function win(player) {
     winner = true;
-    shoot = false;
     window.cancelAnimationFrame(game_animation); // must stop this if you want to run another
     canvas2 = document.getElementById("outer");
     context2 = canvas2.getContext("2d");
@@ -518,10 +562,10 @@ function win(player) {
     const rect = canvas.getBoundingClientRect();
     const left = rect.left;
     const top = rect.top;
-    console.log("The inner canvas is " + left + "px from the left of the screen");
-
-    player.x += left;
-    player.y += top;
+    console.log("The inner canvas is " + left + "px from the left of the screen. The player is " + player.x + "px from the left of its canvas.");
+    
+    // player.x += left;
+    // player.y += top;
     round_finished_draw(player);
 }
 
@@ -529,8 +573,12 @@ function win(player) {
 
 function round_finished_draw(post_game_player) {
     draw2();
+    console.log("new player's x: " + post_game_player.x + " and y: " + post_game_player.y + "px")
     function draw2() {
-    window.requestAnimationFrame(draw2);
+        window.requestAnimationFrame(draw2);
+        console.log("drawing new player's x at: " + post_game_player.x + " and y at: " + post_game_player.y + "px")
+        shoot = false;
+
         fpsInterval = 50;
         let now = Date.now();
         let elapsed = now - then;
@@ -555,14 +603,17 @@ function round_finished_draw(post_game_player) {
 
         // Moving
         if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
-            post_game_player.frameY = 1;
             post_game_player.frameX = (post_game_player.frameX + 1) % 8;
         }
         // if idle
         if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
 
             if (shoot == false) {
-                post_game_player.frameX = post_game_player.frameY = 0;
+                post_game_player.frameX = 0;
+                post_game_player.frameY = 1;
+                if (post_game_player.turned) {
+                    post_game_player.frameY = 6;
+                }
             }
             post_game_player.xChange = post_game_player.xChange * 0.8;
             post_game_player.yChange = post_game_player.yChange * 0.8;
@@ -587,27 +638,33 @@ function round_finished_draw(post_game_player) {
         }
         // Hitting the edge of the canvas
         // left side
-        if (post_game_player.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+        if (post_game_player.x + post_game_player.inner_x + post_game_player.inner_width < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
             post_game_player.x = canvas2.width - post_game_player.inner_x;  // Come back at the right edge
         }
         // right side
-        if (post_game_player.x + 9 > canvas2.width) { // Hitting the right edge --- similar here
-            post_game_player.x = -24;  // Come back at left edge
+        if (post_game_player.x + post_game_player.inner_x > canvas2.width) { // Hitting the right edge --- similar here
+            post_game_player.x = -(post_game_player.inner_x + post_game_player.inner_width);  // Come back at left edge
         }
 
 
         if (moveLeft) {
-            post_game_player.xChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+            turn("left", post_game_player);
+            post_game_player.xChange -= 0.8;
         }
         if (moveRight) {
+            turn("right", post_game_player);
             post_game_player.xChange += 0.8;
         }
         if (moveUp) {
-            post_game_player.yChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+            post_game_player.yChange -= 0.8;
         }
         if (moveDown) {
             post_game_player.yChange += 0.8;
         }
+
+
+
+        //End of draw2()
     }
 };
 
