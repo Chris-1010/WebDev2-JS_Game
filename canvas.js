@@ -1,5 +1,8 @@
 let canvas;
+let canvas2;  // To achieve post-game state
 let context;
+let context2;  // To achieve post-game state
+let game_animation;
 
 let now;
 let fpsInterval;  // 60fps
@@ -13,10 +16,6 @@ const myArray = [
     "Chan Chan.mp3",
     "Classical.mp3",
     "Del Rio Bravo.mp3",
-    "Esskeetit Notification.mp3",
-    "Feel Good Inc Bass Only.mp3",
-    "Feel Good Inc Short Bass.mp3",
-    "Feel Good Inc Short Guitar Strum.mp3",
     "Feel Good Inc. Bass & Guitar Deep.mp3",
     "Feel Good Inc. Bass & Guitar.mp3",
     "Feel Good Inc. Guitar.mp3",
@@ -28,14 +27,8 @@ const myArray = [
     "Jump Up Superstar Slowed Music Box.mp3",
     "K.K. Cruisin'.mp3",
     "Koopa's Theme Flute.mp3",
-    "Life Could Be a Dream Instrumental Trimmed.mp3",
     "Life Could Be a Dream Instrumental.mp3",
-    "Life Could Be a Dream Notification.mp3",
-    "Life Could Be a Dream Short Notification 1 1.mp3",
-    "Life Could Be a Dream Short Notification 1.mp3",
-    "Life Could Be a Dream Short Notification.mp3",
     "Life Could Be a Dream.mp3",
-    "metal music 1.mp3",
     "Mike Nesmith - Tapioca Tundra.mp3",
     "Modern Jazz Samba.mp3",
     "Morning Flower (Reggae Version).mp3",
@@ -47,9 +40,6 @@ const myArray = [
     "Raving_Rabbids_OST_1.mp3",
     "Raving_Rabbids_OST_2.mp3",
     "Sesame Street (Instrumental) Ringtone.mp3",
-    "Sesame Street Short Notification Sound.mp3",
-    "Sesame Street Shorter Ringtone .mp3",
-    "Sesame Street Tiny Notification Sound.mp3",
     "She Took the Kids Ending.mp3",
     "Spaz Bridge.mp3",
     "Star vs. the Forces of Evil - Buff Frog's Theme.mp3",
@@ -59,68 +49,67 @@ const myArray = [
     "Tiki Land.mp3",
     "Verano Sensual.mp3",
     "Washing Machine Whistling.mp3",
-    "what's poppin'.mp3",
     "Wii Party Suggestions Music.mp3",
     "3DS Mii Maker.mp3",
     "59 Seconds Theme.mp3",
-  ];
-let background_song = myArray[randint(0,myArray.length)];
+];
+let background_song = myArray[randint(0, myArray.length)];
 
-let terrain_background = [[73,19,85,59,59,59,59,72,84,21,60,86,86,60,86,86,73,73,73,86,19,58,84,59,59,71,85,58,84,71],
-                          [73,73,61,59,85,71,72,71,59,24,60,86,73,86,60,86,86,86,73,60,19,84,58,59,59,59,59,84,12,85],
-                          [60,73,60,61,36,46,46,46,46,22,60,86,73,60,60,60,60,73,73,60,19,59,59,59,59,59,59,59,25,72],
-                          [60,73,86,60,22,85,58,84,71,21,60,73,60,60,73,73,60,86,73,86,19,59,59,59,59,59,59,84,24,46],
-                          [73,86,86,86,61,85, 9,46,47,21,60,60,86,60,60,60,60,60,73,60,19,58,58,59,59,72,58,59,25,71],
-                          [60,86, 6, 7, 8,77,25,59,84,21,86,86,73,86,60,60,73,73,86,86,19,59,59,59,59,72,59,59,25,71],
-                          [60,73,19,20,21,19,25,59,58,89, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,90,59,59,59,59,85,59,59,25,71],
-                          [73,73,32,33,34,24,10,46,11,59,72,72,59,59,84,58,59,59,59,59,59,59,59,59,59,59,59,58,25,85],
-                          [73,86,86,60, 7,90,59,59,25,59,72,58,59,59,59,59,59,59,59,59,72,58, 9,46,46,46,47,59,25,58],
-                          [ 7,49,73,73,84,59,59,71,24,46,46,46,46,46,11,59,59,84,85,59,58,71,25,59,58,71,84,59,25,84],
-                          [23,21,86,73,77,58,71,59,25,72,59,59,59, 9,10,47,59,59,59,59,85,59,25,59,71,59,59,59,25,85],
-                          [46,22,60,60,19,59,59,59,25,59,59,59,59,25,59,59,59,59,59,59,59,59,25,59,59,85,84,59,25,72],
-                          [46,22,86,73,90,59,59,59,38,59,59,84,59,25,71,72,59,59,59,72,59,59,25,71,59,59,84,59,25,58],
-                          [23,35, 8,48,84,85,59,72,59,59,59,59,59,24,46,46,46,46,46,46,46,46,22,58,84,59,59,59,25,85],
-                          [33,33,34,19,59,71,84,59,58,71,85,84,59,25,59,59,59,59,85,85,72,59,35,46,46,46,46,46,22,58],
-                          [ 7, 7, 7,64,59,59,59,84,59,71,58,71,85,25,72,58,85,59,59,59,59,59,59,59,59,84,59,59,25,59]]
+let terrain_background = [[73, 19, 85, 59, 59, 59, 59, 72, 84, 21, 60, 86, 86, 60, 86, 86, 73, 73, 73, 86, 19, 58, 84, 59, 59, 71, 85, 58, 84, 71],
+[73, 73, 61, 59, 85, 71, 72, 71, 59, 24, 60, 86, 73, 86, 60, 86, 86, 86, 73, 60, 19, 84, 58, 59, 59, 59, 59, 84, 12, 85],
+[60, 73, 60, 61, 36, 46, 46, 46, 46, 22, 60, 86, 73, 60, 60, 60, 60, 73, 73, 60, 19, 59, 59, 59, 59, 59, 59, 59, 25, 72],
+[60, 73, 86, 60, 22, 85, 58, 84, 71, 21, 60, 73, 60, 60, 73, 73, 60, 86, 73, 86, 19, 59, 59, 59, 59, 59, 59, 84, 24, 46],
+[73, 86, 86, 86, 61, 85, 9, 46, 47, 21, 60, 60, 86, 60, 60, 60, 60, 60, 73, 60, 19, 58, 58, 59, 59, 72, 58, 59, 25, 71],
+[60, 86, 6, 7, 8, 77, 25, 59, 84, 21, 86, 86, 73, 86, 60, 60, 73, 73, 86, 86, 19, 59, 59, 59, 59, 72, 59, 59, 25, 71],
+[60, 73, 19, 20, 21, 19, 25, 59, 58, 89, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 90, 59, 59, 59, 59, 85, 59, 59, 25, 71],
+[73, 73, 32, 33, 34, 24, 10, 46, 11, 59, 72, 72, 59, 59, 84, 58, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 58, 25, 85],
+[73, 86, 86, 60, 7, 90, 59, 59, 25, 59, 72, 58, 59, 59, 59, 59, 59, 59, 59, 59, 72, 58, 9, 46, 46, 46, 47, 59, 25, 58],
+[7, 49, 73, 73, 84, 59, 59, 71, 24, 46, 46, 46, 46, 46, 11, 59, 59, 84, 85, 59, 58, 71, 25, 59, 58, 71, 84, 59, 25, 84],
+[23, 21, 86, 73, 77, 58, 71, 59, 25, 72, 59, 59, 59, 9, 10, 47, 59, 59, 59, 59, 85, 59, 25, 59, 71, 59, 59, 59, 25, 85],
+[46, 22, 60, 60, 19, 59, 59, 59, 25, 59, 59, 59, 59, 25, 59, 59, 59, 59, 59, 59, 59, 59, 25, 59, 59, 85, 84, 59, 25, 72],
+[46, 22, 86, 73, 90, 59, 59, 59, 38, 59, 59, 84, 59, 25, 71, 72, 59, 59, 59, 72, 59, 59, 25, 71, 59, 59, 84, 59, 25, 58],
+[23, 35, 8, 48, 84, 85, 59, 72, 59, 59, 59, 59, 59, 24, 46, 46, 46, 46, 46, 46, 46, 46, 22, 58, 84, 59, 59, 59, 25, 85],
+[33, 33, 34, 19, 59, 71, 84, 59, 58, 71, 85, 84, 59, 25, 59, 59, 59, 59, 85, 85, 72, 59, 35, 46, 46, 46, 46, 46, 22, 58],
+[7, 7, 7, 64, 59, 59, 59, 84, 59, 71, 58, 71, 85, 25, 72, 58, 85, 59, 59, 59, 59, 59, 59, 59, 59, 84, 59, 59, 25, 59]]
 
 let tilesPerRow = 13;
 let tileSize = 16;
 
 let player = {
-    x : 0,
-    y : 0,
-    inner_x : 9,
-    inner_width : 15,
-    width : 106,
-    height : 22,
-    frameX : 0,
-    frameY : 0,
-    xChange : 0,
-    yChange : 0,
-    };
+    x: 0,
+    y: 0,
+    inner_x: 9,
+    inner_width: 15,
+    width: 106,
+    height: 22,
+    frameX: 0,
+    frameY: 0,
+    xChange: 0,
+    yChange: 0,
+};
 // IMPORTANT TO NOTE:
 // player's body doesn't really start until roughly 9 pixels in
 // it doesn't end until roughly 24 pixels
 
 let enemies = []
 
-    let moveLeft = false;
-    let moveRight = false;
-    let moveUp = false;
-    let moveDown = false;
-    let shoot = false;
-    let counter = 0;
-    let cooldown = "off";
-    let winner = false;
-    
+let moveLeft = false;
+let moveRight = false;
+let moveUp = false;
+let moveDown = false;
+let shoot = false;
+let counter = 0;
+let cooldown = "off";
+let winner = false;
 
-    let enable_collisions = true;
-    
-    let playerImage  = new Image();
-    let enemyImage  = new Image();
-    let enemy_amount = 5;
 
-    let BackgroundImage = new Image();
+let enable_collisions = true;
+
+let playerImage = new Image();
+let enemyImage = new Image();
+let enemy_amount = 5;
+
+let BackgroundImage = new Image();
 
 
 
@@ -151,13 +140,23 @@ function init() {
 
 
     load_assets([
-        {"var": playerImage, "url": "Assets/Player/all.png"},
-        {"var": enemyImage, "url": "Assets/Player/enemy.png"},
-        {"var": BackgroundImage, "url":"Assets/Tileset/Minipack/tiles.png"}
+        { "var": playerImage, "url": "Assets/Player/all.png" },
+        { "var": enemyImage, "url": "Assets/Player/enemy.png" },
+        { "var": BackgroundImage, "url": "Assets/Tileset/Minipack/tiles.png" }
     ], draw);
 }
+
+
+
+
+
+
+
+
+
+
 function draw() {
-    window.requestAnimationFrame(draw);
+    game_animation = window.requestAnimationFrame(draw);
 
     fpsInterval = 50;
     let now = Date.now();
@@ -168,9 +167,10 @@ function draw() {
     then = now - (elapsed % fpsInterval);
 
 
-    // Draw background on canvas
+    // Clear Canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw background on canvas
     for (let r = 0; r < terrain_background.length; r += 1) {
         for (let c = 0; c < terrain_background[0].length; c += 1) {
             let tile = terrain_background[r][c];
@@ -178,76 +178,79 @@ function draw() {
                 let tileRow = Math.floor(tile / tilesPerRow);
                 let tileCol = Math.floor(tile % tilesPerRow);
                 context.drawImage(BackgroundImage,
-                                  tileCol * tileSize,
-                                  tileRow * tileSize,
-                                  tileSize,
-                                  tileSize,
-                                  
-                                  c * tileSize,
-                                  r * tileSize,
-                                  tileSize,
-                                  tileSize);
+                    tileCol * tileSize,
+                    tileRow * tileSize,
+                    tileSize,
+                    tileSize,
+
+                    c * tileSize,
+                    r * tileSize,
+                    tileSize,
+                    tileSize);
             }
         }
     }
 
 
-    // Draw Player
-    context.drawImage(playerImage,
-        player.width * player.frameX,
-        player.height * player.frameY,
-        player.width,
-        player.height,
-        
-        player.x, player.y, player.width, player.height
-);
+    // Draw Player in first phase where game has not been won
+    if (winner == false) {
+        context.drawImage(playerImage,
+            player.width * player.frameX,
+            player.height * player.frameY,
+            player.width,
+            player.height,
+
+            player.x, player.y, player.width, player.height
+        );
+    }
 
 
-if (enemies.length <= enemy_amount) {
-    setTimeout(function() {
-    let enemy = {
-        x : randint(-1,1) * canvas.width,
-        y : randint(-50, canvas.height + 50),
-        inner_x : 9,
-        inner_width : 15,
-        width : 106,
-        height : 22,
-        frameX : 0,
-        frameY : 0,
-        xChange : 1,
-        yChange : 1,
-        };
-        enemies.push(enemy);
-    }, 5000);
-}
-else if (enemies.length == 0 && winner == false) {
-    win();
-}
+    if (enemies.length <= enemy_amount) {
+        setTimeout(function () {
+            let enemy = {
+                x: randint(-1, 1) * canvas.width,
+                y: randint(-50, canvas.height + 50),
+                inner_x: 9,
+                inner_width: 15,
+                width: 106,
+                height: 22,
+                frameX: 0,
+                frameY: 0,
+                xChange: 1,
+                yChange: 1,
+            };
+            enemies.push(enemy);
+        }, 5000);
+    }
+    else if (enemies.length == 0 && winner == false) {
+        win(player);
+    }
 
 
-// Draw Enemy
+    // Draw Enemy
 
-for (let enemy of enemies) {
-    context.drawImage(enemyImage,
-        enemy.width * enemy.frameX,
-        enemy.height * enemy.frameY,
-        enemy.width,
-        enemy.height,
-        
-        enemy.x, enemy.y, enemy.width, enemy.height
-    );
-}
+    for (let enemy of enemies) {
+        context.drawImage(enemyImage,
+            enemy.width * enemy.frameX,
+            enemy.height * enemy.frameY,
+            enemy.width,
+            enemy.height,
 
+            enemy.x, enemy.y, enemy.width, enemy.height
+        );
+    }
+
+    // Moving
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
         player.frameY = 1;
         player.frameX = (player.frameX + 1) % 8;
     }
     // if idle
-    if (!(moveLeft || moveRight || moveUp || moveDown)) {
-        
+    if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
+
         if (shoot == false) {
-        player.frameX = player.frameY = 0;
-    }
+            player.frameX = player.frameY = 0;
+        }
         player.xChange = player.xChange * 0.8;
         player.yChange = player.yChange * 0.8;
     }
@@ -263,28 +266,31 @@ for (let enemy of enemies) {
     // }
     // FOLLOW PLAYER
     for (let enemy of enemies) {
-    if (enemy.x % player.x < 1) {
-        if (enemy.xChange < 2) {
-        enemy.xChange += 1;
+        if (enemy.x % player.x < 1) {
+            if (enemy.xChange < 2) {
+                enemy.xChange += 1;
+            }
+        }
+
+        if (player.x <= enemy.x) {
+            enemy.x -= enemy.xChange;
+        }
+        else if (player.x >= enemy.x) {
+            enemy.x += enemy.xChange;
+        }
+
+        if (player.y <= enemy.y) {
+            enemy.y -= enemy.yChange;
+        }
+        else if (player.y >= enemy.y) {
+            enemy.y += enemy.yChange;
         }
     }
-    if (player.x <= enemy.x) {
-        enemy.x -= enemy.xChange;
-    }
-    else if (player.x >= enemy.x) {
-        enemy.x += enemy.xChange;
-    }
-    if (player.y <= enemy.y) {
-        enemy.y -= enemy.yChange;
-    }
-    else if (player.y >= enemy.y) {
-        enemy.y += enemy.yChange;
-    }}
 
-    
+
 
     //COLLIDING
-for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
+    for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
         for (let enemy2 = enemy1 + 1; enemy2 < enemies.length; enemy2 += 1) {
             if (enable_collisions) {
                 if (collides(enemies[enemy1], enemies[enemy2])) {
@@ -294,8 +300,8 @@ for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
                     // enemy_amount -= 1;
                 }
             }
+        }
     }
-}
 
 
     function collides(e1, e2) {
@@ -313,10 +319,10 @@ for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
     }
     function disableCollisions() {
         enable_collisions = false;
-        
+
         // Wait for some time before enabling collisions again
         setTimeout(enableCollisions, 50);
-      }
+    }
 
     // Physics
     player.xChange = player.xChange * 0.95; // Friction!
@@ -331,39 +337,40 @@ for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
         player.y = canvas.height - player.height
     }
     // Hitting the edge of the canvas
-        // left side
+    // left side
     if (player.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-        player.x = canvas.width - 9;  // Come back at the right edge
+        player.x = canvas.width - player.inner_x;  // Come back at the right edge
     }
-        // right side
+    // right side
     if (player.x + 9 > canvas.width) { // Hitting the right edge --- similar here
         player.x = -24;  // Come back at left edge
     }
-/////
-for(let enemy of enemies) {
-    // Hitting the edge of the canvas
+
+
+    // Enemies' Bounds
+    for (let enemy of enemies) {
+        // Hitting the edge of the canvas
         // left side
-    if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-        enemy.x = canvas.width - 9;  // Come back at the right edge
-    }
+        if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+            enemy.x = canvas.width - player.inner_x;  // Come back at the right edge
+        }
         // right side
-    if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
-        enemy.x = -24;  // Come back at left edge
+        if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
+            enemy.x = -24;  // Come back at left edge
+        }
     }
-}
-//////
 
 
 
 
     if (moveLeft) {
-        player.xChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
+        player.xChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
     }
     if (moveRight) {
         player.xChange += 0.8;
     }
-    if (moveUp) {        
-        player.yChange -= 0.8;  // Acceleration! Increases the distance the player is moving every time the animation is played while leftArrow is held down
+    if (moveUp) {
+        player.yChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
     }
     if (moveDown) {
         player.yChange += 0.8;
@@ -373,7 +380,7 @@ for(let enemy of enemies) {
         console.log("Shoot = " + shoot)
         if (shoot == "beam" && cooldown != "on") {
             player.frameY = 2;
-            
+
             if (player.frameX < 6) {
                 counter += 1;
                 if (counter == 1 || counter % 4 == 0) {
@@ -388,13 +395,13 @@ for(let enemy of enemies) {
                 player.frameX = 6;
                 enemy_hit();
             }
-        
-        
-        if (player.frameX == 12) {
-            shoot = false;
-            cooldown = "on";
-            player.frameX = 0;
-        }
+
+
+            if (player.frameX == 12) {
+                shoot = false;
+                cooldown = "on";
+                player.frameX = 0;
+            }
         }
 
         else if (shoot == "wind_down") {
@@ -408,9 +415,24 @@ for(let enemy of enemies) {
         }
     }
 
-    // END OF DRAW
-}
+    function save_player_object(player) {
+        updated_player = {
+            x: player.x,
+            y: player.y,
+            inner_x: 9,
+            inner_width: 15,
+            width: 106,
+            height: 22,
+            frameX: 0,
+            frameY: 0,
+            xChange: player.xChange,
+            yChange: player.yChange,
+        };
+        return updated_player;
+    }
 
+    // END OF DRAW()
+}
 
 
 
@@ -420,31 +442,31 @@ function activate(event) {  // 🟢
     switch (key) {
         case "ArrowLeft":
             if (shoot != "beam") {
-            moveLeft = true;
+                moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
             if (shoot != "beam") {
-            moveRight = true;
+                moveRight = true;
             }
             break;
         case "ArrowUp":
             if (shoot != "beam") {
-            moveUp = true;
+                moveUp = true;
             }
             break;
         case "ArrowDown":
             if (shoot != "beam") {
-            moveDown = true;
+                moveDown = true;
             }
             break;
         case " ":
-            
+
             if (shoot == false) {
-            moveUp = moveRight = moveLeft = moveDown = false;
-            shoot = "beam";
+                moveUp = moveRight = moveLeft = moveDown = false;
+                shoot = "beam";
             }
-        }
+    }
 }
 
 function deactivate(event) { // 🔴
@@ -465,17 +487,17 @@ function deactivate(event) { // 🔴
             moveDown = false;
             break;
         case " ":
-        if (shoot == "beam") {
-            counter = 10;
-            shoot = "wind_down";
-        }    
+            if (shoot == "beam") {
+                counter = 10;
+                shoot = "wind_down";
+            }
     }
 }
 
 function enemy_hit() {
     console.log("enemy_hit function reached")
     for (let enemy of enemies) {
-        if (   ( (enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) ) && ( (enemy.y > player.y && (enemy.y < (player.y + player.height))) || ( (enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y) ) )   ) {
+        if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width))) && ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))) {
             //if   (top left of enemy's body > top right of player's body                    and               right of enemy's body           <  right of player's box)       and  top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
             //if enemy's body is between the x-plane area where the player's beam starts and ends                                                                              AND  y-plane area
             console.log("DIRECT HIT!");
@@ -485,16 +507,114 @@ function enemy_hit() {
     }
 }
 
-function win() {
+function win(player) {
     winner = true;
-    let canvas2 = document.getElementById("outer");
-    let context2 = canvas2.getContext("2d");
+    shoot = false;
+    window.cancelAnimationFrame(game_animation); // must stop this if you want to run another
+    canvas2 = document.getElementById("outer");
+    context2 = canvas2.getContext("2d");
+    context2.imageSmoothingEnabled = false;
+
+    const rect = canvas.getBoundingClientRect();
+    const left = rect.left;
+    const top = rect.top;
+    console.log("The inner canvas is " + left + "px from the left of the screen");
+
+    player.x += left;
+    player.y += top;
+    round_finished_draw(player);
 }
+
+
+
+function round_finished_draw(post_game_player) {
+    draw2();
+    function draw2() {
+    window.requestAnimationFrame(draw2);
+        fpsInterval = 50;
+        let now = Date.now();
+        let elapsed = now - then;
+        if (elapsed <= fpsInterval) {
+            return;
+        }
+        then = now - (elapsed % fpsInterval);
+
+
+        // Clear Canvas
+        context2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+        // Draw Player in same position as when game won
+        context2.drawImage(playerImage,
+            post_game_player.width * post_game_player.frameX,
+            post_game_player.height * post_game_player.frameY,
+            post_game_player.width,
+            post_game_player.height,
+
+            post_game_player.x, post_game_player.y, post_game_player.width, post_game_player.height
+        );
+
+        // Moving
+        if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
+            post_game_player.frameY = 1;
+            post_game_player.frameX = (post_game_player.frameX + 1) % 8;
+        }
+        // if idle
+        if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
+
+            if (shoot == false) {
+                post_game_player.frameX = post_game_player.frameY = 0;
+            }
+            post_game_player.xChange = post_game_player.xChange * 0.8;
+            post_game_player.yChange = post_game_player.yChange * 0.8;
+        }
+
+        // Update the Player
+        post_game_player.x += post_game_player.xChange;
+        post_game_player.y += post_game_player.yChange;
+
+
+        // Physics
+        post_game_player.xChange = post_game_player.xChange * 0.95; // Friction!
+        post_game_player.yChange = post_game_player.yChange * 0.95; // Friction!
+
+
+        // Stop player from going out of bounds
+        if (post_game_player.y < 0) {
+            post_game_player.y = 0;
+        }
+        else if ((post_game_player.y + post_game_player.height) > canvas2.height) {
+            post_game_player.y = canvas2.height - post_game_player.height
+        }
+        // Hitting the edge of the canvas
+        // left side
+        if (post_game_player.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+            post_game_player.x = canvas2.width - post_game_player.inner_x;  // Come back at the right edge
+        }
+        // right side
+        if (post_game_player.x + 9 > canvas2.width) { // Hitting the right edge --- similar here
+            post_game_player.x = -24;  // Come back at left edge
+        }
+
+
+        if (moveLeft) {
+            post_game_player.xChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+        }
+        if (moveRight) {
+            post_game_player.xChange += 0.8;
+        }
+        if (moveUp) {
+            post_game_player.yChange -= 0.8;  // Deceleration! Decreases the distance the player is moving every time the animation is played while leftArrow is lifted
+        }
+        if (moveDown) {
+            post_game_player.yChange += 0.8;
+        }
+    }
+};
 
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run
     let number_of_assets = assets.length;
-    let loaded = function() {
+    let loaded = function () {
         console.log("Loaded 😊");
         number_of_assets -= 1;
         if (number_of_assets === 0) {
@@ -518,7 +638,7 @@ function load_assets(assets, callback_function) {  // Ensures assets (images/aud
 
 
 function randint(min, max) {
-    return Math.round(Math.random() * (max-min)) + min;
+    return Math.round(Math.random() * (max - min)) + min;
 }
 
 let css_colors = [
@@ -661,7 +781,7 @@ let css_colors = [
     "Wheat",
     "Yellow",
     "YellowGreen"
-  ]
+]
 
 let random_color = css_colors[randint(1, css_colors.length)];
 document.querySelector(":root").style.cssText = "--random_color: " + random_color;
