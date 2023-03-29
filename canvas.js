@@ -52,6 +52,20 @@ const myArray = [
     "Wii Party Suggestions Music.mp3",
     "3DS Mii Maker.mp3",
     "59 Seconds Theme.mp3",
+    "Doors OST Curious Light.mp3",
+    "Doors OST Elevator Jammed.mp3",
+    "Ending Theme - Super Mario World.mp3",
+    "Flipsville Galaxy.mp3",
+    "GTA 5- its a setup (ending song).mp3",
+    "GTA IV Loading Screen Theme Song.mp3",
+    "Honeybloom Galaxy.mp3",
+    "Labour (Human Fall Flat).mp3",
+    "Mario Paint theme.mp3",
+    "Maro Malt (Malo Mart J-House Remix).mp3",
+    "Mii plaza 3ds theme remix (NOTEBLOCK).mp3",
+    "Sleepwalk by Santo and Johnny (Slowed Down).mp3",
+    "Sonic Mania OST - Rogues Gallery for Mirage Saloon Zone Act 2 Remix.mp3",
+    "Starshine Beach Galaxy (Underwater).mp3",
 ];
 let background_song = myArray[randint(0, myArray.length)];
 
@@ -88,9 +102,6 @@ let player = {
     yChange: 0,
     turned: false
 };
-// IMPORTANT TO NOTE:
-// player's body doesn't really start until roughly 9 pixels in
-// it doesn't end until roughly 24 pixels
 
 let enemies = []
 
@@ -99,16 +110,18 @@ let moveRight = false;
 let moveUp = false;
 let moveDown = false;
 let shoot = false;
-let counter = 0;
-let cooldown = "off";
-let winner = false;
 
+let counter = 0;
+let wait_counter = 0;
+let cooldown = "off";
+
+let winner = false;
 
 let enable_collisions = true;
 
 let playerImage = new Image();
-let enemyImage = new Image();
-let enemy_amount = 1;
+let enemyImage_redhair = new Image();
+let enemy_amount = 10;
 
 let BackgroundImage = new Image();
 
@@ -141,9 +154,9 @@ function init() {
 
 
     load_assets([
-        { "var": playerImage, "url": "Assets/Player/all.png" },
-        { "var": enemyImage, "url": "Assets/Player/enemy.png" },
-        { "var": BackgroundImage, "url": "Assets/Tileset/Minipack/tiles.png" }
+        { "var": playerImage, "url": "Assets/Player/player.png" },
+        { "var": enemyImage_redhair, "url": "Assets/Enemies/red-hair-enemy.png" },
+        { "var": BackgroundImage, "url": "Assets/Tileset/Buildings/tiles.png" }
     ], draw);
 }
 
@@ -206,22 +219,22 @@ function draw() {
     }
 
 
-    if (enemies.length <= enemy_amount) {
-        setTimeout(function () {
+    if (enemies.length < enemy_amount) {
+        // setTimeout(function () {
             let enemy = {
                 x: randint(-1, 1) * canvas.width,
                 y: randint(-50, canvas.height + 50),
-                inner_x: 9,
-                inner_width: 15,
-                width: 106,
-                height: 22,
+                inner_x: 21,
+                inner_width: 29,
+                width: 28,
+                height: 30,
                 frameX: 0,
                 frameY: 0,
                 xChange: 1,
                 yChange: 1,
             };
             enemies.push(enemy);
-        }, 5000);
+        // }, 5000);
     }
     else if (enemies.length == 0 && winner == false) {
         win(player);
@@ -229,9 +242,8 @@ function draw() {
 
 
     // Draw Enemy
-
     for (let enemy of enemies) {
-        context.drawImage(enemyImage,
+        context.drawImage(enemyImage_redhair,
             enemy.width * enemy.frameX,
             enemy.height * enemy.frameY,
             enemy.width,
@@ -239,7 +251,7 @@ function draw() {
 
             enemy.x, enemy.y, enemy.width, enemy.height
         );
-    }
+}
 
     // Moving
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
@@ -253,13 +265,19 @@ function draw() {
     if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
         if (shoot == false) {
 
-        player.frameY = 0;
-        if (player.turned) {
-            player.frameY = 5;
-        }
+            if (player.frameY != 0 && player.frameY != 5) {
+                player.frameX = 0;  // running-sprite row has 8 columns whereas the idle-sprite row only has 5
+                if (player.turned) {
+                    player.frameY = 5
+                }
+                else {
+                    player.frameY = 0;
+                }
+            }
+            
 
 
-        
+            
             counter += 1;
             if (counter % 3 == 0) {
             player.frameX = (player.frameX + 1) % 5;
@@ -334,7 +352,11 @@ function draw() {
         enable_collisions = false;
 
         // Wait for some time before enabling collisions again
-        setTimeout(enableCollisions, 50);
+        wait_counter += 1;
+        if (wait_counter == 50) {
+            wait_counter = 0;
+            enableCollisions();
+        }
     }
 
     // Physics
@@ -554,6 +576,28 @@ function enemy_hit() {
 
 function win(player) {
     winner = true;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw background on canvas
+    for (let r = 0; r < terrain_background.length; r += 1) {
+        for (let c = 0; c < terrain_background[0].length; c += 1) {
+            let tile = terrain_background[r][c];
+            if (tile >= 0) {
+                let tileRow = Math.floor(tile / tilesPerRow);
+                let tileCol = Math.floor(tile % tilesPerRow);
+                context.drawImage(BackgroundImage,
+                    tileCol * tileSize,
+                    tileRow * tileSize,
+                    tileSize,
+                    tileSize,
+
+                    c * tileSize,
+                    r * tileSize,
+                    tileSize,
+                    tileSize);
+            }
+        }
+    }
     window.cancelAnimationFrame(game_animation); // must stop this if you want to run another
     canvas2 = document.getElementById("outer");
     context2 = canvas2.getContext("2d");
@@ -564,14 +608,15 @@ function win(player) {
     const top = rect.top;
     console.log("The inner canvas is " + left + "px from the left of the screen. The player is " + player.x + "px from the left of its canvas.");
     
-    // player.x += left;
-    // player.y += top;
+    player.x = left;
+    player.y = top;
     round_finished_draw(player);
 }
 
 
 
 function round_finished_draw(post_game_player) {
+    
     draw2();
     console.log("new player's x: " + post_game_player.x + " and y: " + post_game_player.y + "px")
     function draw2() {
@@ -603,21 +648,38 @@ function round_finished_draw(post_game_player) {
 
         // Moving
         if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
+            post_game_player.frameY = 1
+            if (post_game_player.turned) {
+                post_game_player.frameY = 6;
+            }
             post_game_player.frameX = (post_game_player.frameX + 1) % 8;
-        }
+            }
         // if idle
         if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
 
             if (shoot == false) {
-                post_game_player.frameX = 0;
-                post_game_player.frameY = 1;
-                if (post_game_player.turned) {
-                    post_game_player.frameY = 6;
+
+                if (post_game_player.frameY != 0 && post_game_player.frameY != 5) {
+                    post_game_player.frameX = 0;  // running-sprite row has 8 columns whereas the idle-sprite row only has 5
+                    if (post_game_player.turned) {
+                        post_game_player.frameY = 5
+                    }
+                    else {
+                        post_game_player.frameY = 0;
+                    }
                 }
+        
+        
+                
+                    counter += 1;
+                    if (counter % 3 == 0) {
+                    post_game_player.frameX = (post_game_player.frameX + 1) % 5;
+                    }
+                }
+        
+                post_game_player.xChange = post_game_player.xChange * 0.8; // Friction increased when stopped
+                post_game_player.yChange = post_game_player.yChange * 0.8;
             }
-            post_game_player.xChange = post_game_player.xChange * 0.8;
-            post_game_player.yChange = post_game_player.yChange * 0.8;
-        }
 
         // Update the Player
         post_game_player.x += post_game_player.xChange;
