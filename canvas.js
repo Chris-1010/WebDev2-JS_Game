@@ -120,7 +120,7 @@ let winner = false;
 let enable_collisions = true;
 
 let playerImage = new Image();
-let enemyImage_redhair = new Image();
+let enemyImage_skull = new Image();
 let enemy_amount = 10;
 
 let BackgroundImage = new Image();
@@ -155,8 +155,8 @@ function init() {
 
     load_assets([
         { "var": playerImage, "url": "Assets/Player/player.png" },
-        { "var": enemyImage_redhair, "url": "Assets/Enemies/red-hair-enemy.png" },
-        { "var": BackgroundImage, "url": "Assets/Tileset/Buildings/tiles.png" }
+        { "var": enemyImage_skull, "url": "Assets/Enemies/fire-skull.png" },
+        { "var": BackgroundImage, "url": "Assets/Tileset/tiles.png" }
     ], draw);
 }
 
@@ -243,7 +243,7 @@ function draw() {
 
     // Draw Enemy
     for (let enemy of enemies) {
-        context.drawImage(enemyImage_redhair,
+        context.drawImage(enemyImage_skull,
             enemy.width * enemy.frameX,
             enemy.height * enemy.frameY,
             enemy.width,
