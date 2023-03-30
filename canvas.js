@@ -8,7 +8,7 @@ let now;
 let fpsInterval;  // 60fps
 let then = Date.now();
 
-const myArray = [
+const songs = [
     "Arriba Amoeba!.mp3",
     "Arroz Con Pollo.mp3",
     "Beachfront Celebration.mp3",
@@ -67,24 +67,28 @@ const myArray = [
     "Sonic Mania OST - Rogues Gallery for Mirage Saloon Zone Act 2 Remix.mp3",
     "Starshine Beach Galaxy (Underwater).mp3",
 ];
-let background_song = myArray[randint(0, myArray.length)];
+let background_song = songs[randint(0, songs.length - 1)];
 
-let terrain_background = [[73, 19, 85, 59, 59, 59, 59, 72, 84, 21, 60, 86, 86, 60, 86, 86, 73, 73, 73, 86, 19, 58, 84, 59, 59, 71, 85, 58, 84, 71],
-[73, 73, 61, 59, 85, 71, 72, 71, 59, 24, 60, 86, 73, 86, 60, 86, 86, 86, 73, 60, 19, 84, 58, 59, 59, 59, 59, 84, 12, 85],
-[60, 73, 60, 61, 36, 46, 46, 46, 46, 22, 60, 86, 73, 60, 60, 60, 60, 73, 73, 60, 19, 59, 59, 59, 59, 59, 59, 59, 25, 72],
-[60, 73, 86, 60, 22, 85, 58, 84, 71, 21, 60, 73, 60, 60, 73, 73, 60, 86, 73, 86, 19, 59, 59, 59, 59, 59, 59, 84, 24, 46],
-[73, 86, 86, 86, 61, 85, 9, 46, 47, 21, 60, 60, 86, 60, 60, 60, 60, 60, 73, 60, 19, 58, 58, 59, 59, 72, 58, 59, 25, 71],
-[60, 86, 6, 7, 8, 77, 25, 59, 84, 21, 86, 86, 73, 86, 60, 60, 73, 73, 86, 86, 19, 59, 59, 59, 59, 72, 59, 59, 25, 71],
-[60, 73, 19, 20, 21, 19, 25, 59, 58, 89, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 90, 59, 59, 59, 59, 85, 59, 59, 25, 71],
-[73, 73, 32, 33, 34, 24, 10, 46, 11, 59, 72, 72, 59, 59, 84, 58, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 59, 58, 25, 85],
-[73, 86, 86, 60, 7, 90, 59, 59, 25, 59, 72, 58, 59, 59, 59, 59, 59, 59, 59, 59, 72, 58, 9, 46, 46, 46, 47, 59, 25, 58],
-[7, 49, 73, 73, 84, 59, 59, 71, 24, 46, 46, 46, 46, 46, 11, 59, 59, 84, 85, 59, 58, 71, 25, 59, 58, 71, 84, 59, 25, 84],
-[23, 21, 86, 73, 77, 58, 71, 59, 25, 72, 59, 59, 59, 9, 10, 47, 59, 59, 59, 59, 85, 59, 25, 59, 71, 59, 59, 59, 25, 85],
-[46, 22, 60, 60, 19, 59, 59, 59, 25, 59, 59, 59, 59, 25, 59, 59, 59, 59, 59, 59, 59, 59, 25, 59, 59, 85, 84, 59, 25, 72],
-[46, 22, 86, 73, 90, 59, 59, 59, 38, 59, 59, 84, 59, 25, 71, 72, 59, 59, 59, 72, 59, 59, 25, 71, 59, 59, 84, 59, 25, 58],
-[23, 35, 8, 48, 84, 85, 59, 72, 59, 59, 59, 59, 59, 24, 46, 46, 46, 46, 46, 46, 46, 46, 22, 58, 84, 59, 59, 59, 25, 85],
-[33, 33, 34, 19, 59, 71, 84, 59, 58, 71, 85, 84, 59, 25, 59, 59, 59, 59, 85, 85, 72, 59, 35, 46, 46, 46, 46, 46, 22, 58],
-[7, 7, 7, 64, 59, 59, 59, 84, 59, 71, 58, 71, 85, 25, 72, 58, 85, 59, 59, 59, 59, 59, 59, 59, 59, 84, 59, 59, 25, 59]]
+let terrain_background = [[73,19,85,59,59,59,59,72,84,21,60,86,86,60,86,86,73,73,73,86,19,58,84,59,59,71,85,58,84,71,58,59],
+                          [73,73,61,59,85,71,72,71,59,24,60,86,73,86,60,86,86,86,73,60,19,84,58,59,59,59,59,84,12,85,58,59],
+                          [60,73,60,61,36,46,46,46,46,22,60,86,73,60,60,60,60,73,73,60,19,59,59,59,59,59,59,59,25,72,58,59],
+                          [60,73,86,60,22,85,58,84,71,21,60,73,60,60,73,73,60,86,73,86,19,59,59,59,59,59,59,84,24,46,58,59],
+                          [73,86,86,86,61,85,9,46,47,21,60,60,86,60,60,60,60,60,73,60,19,58,58,59,59,72,58,59,25,71,58,59],
+                          [60,86,6,7,8,77,25,59,84,21,86,86,73,86,60,60,73,73,86,86,19,59,59,59,59,72,59,59,25,71,58,59],
+                          [60,73,19,20,21,19,25,59,58,89,7,7,7,7,7,7,7,7,7,7,90,59,59,59,59,85,59,59,25,71,58,59],
+                          [73,73,32,33,34,24,10,46,11,59,72,72,59,59,84,58,59,59,59,59,59,59,59,59,59,59,59,58,25,85,58,59],
+                          [73,86,86,60,7,90,59,59,25,59,72,58,59,59,59,59,59,59,59,59,72,58,9,46,46,46,47,59,25,58,58,59],
+                          [7,49,73,73,84,59,59,71,24,46,46,46,46,46,11,59,59,84,85,59,58,71,25,59,58,71,84,59,25,84,58,59],
+                          [23,21,86,73,77,58,71,59,25,72,59,59,59,9,10,47,59,59,59,59,85,59,25,59,71,59,59,59,25,85,58,59],
+                          [46,22,60,60,19,59,59,59,25,59,59,59,59,25,59,59,59,59,59,59,59,59,25,59,59,85,84,59,25,72,58,59],
+                          [46,22,86,73,90,59,59,59,38,59,59,84,59,25,71,72,59,59,59,72,59,59,25,71,59,59,84,59,25,58,58,59],
+                          [23,35,8,48,84,85,59,72,59,59,59,59,59,24,46,46,46,46,46,46,46,46,22,58,84,59,59,59,25,85,58,59],
+                          [33,33,34,19,59,71,84,59,58,71,85,84,59,25,59,59,59,59,85,85,72,59,35,46,46,46,46,46,22,58,58,59],
+                          [85,58,71,85,72,59,85,85,58,84,72,71,85,38,85,84,59,71,72,59,71,72,58,71,71,59,72,84,25,84,58,59],
+                          [84,84,72,59,84,59,72,84,72,71,72,84,72,58,72,72,84,84,85,58,58,58,85,71,59,71,85,84,25,59,58,59],
+                          [71,71,84,58,85,71,84,85,72,84,72,72,72,72,85,59,72,58,59,72,85,59,58,58,58,84,71,84,25,58,59,59],
+                          [59,71,59,58,71,85,59,59,84,72,58,84,85,59,58,72,71,59,85,84,84,59,58,71,71,59,72,71,25,71,72,72],
+                          [72,71,71,59,59,85,71,72,84,85,85,58,72,58,72,72,71,85,84,58,85,85,58,58,71,85,58,58,25,84,85,85]]
 
 let tilesPerRow = 13;
 let tileSize = 16;
@@ -103,7 +107,11 @@ let player = {
     turned: false
 };
 
-let enemies = []
+let enemies = ["skull"];
+let active_enemies = [];
+let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
+let enemy_amount = 1;
+let enemy_counter = 0;
 
 let moveLeft = false;
 let moveRight = false;
@@ -121,7 +129,6 @@ let enable_collisions = true;
 
 let playerImage = new Image();
 let enemyImage_skull = new Image();
-let enemy_amount = 10;
 
 let BackgroundImage = new Image();
 
@@ -219,38 +226,47 @@ function draw() {
     }
 
 
-    if (enemies.length < enemy_amount) {
-        // setTimeout(function () {
+    if (active_enemies.length < enemy_amount) {
+        enemy_counter += 1;
+        if (enemy_randomiser == "skull") {
             let enemy = {
+                id : enemy_counter,
+                image_name : enemyImage_skull,
                 x: randint(-1, 1) * canvas.width,
                 y: randint(-50, canvas.height + 50),
-                inner_x: 21,
-                inner_width: 29,
-                width: 28,
+                inner_x: 7,
+                inner_y: 12,
+                inner_width: 10,
+                inner_height: 14,
+                width: 26,
                 height: 30,
                 frameX: 0,
                 frameY: 0,
                 xChange: 1,
                 yChange: 1,
             };
-            enemies.push(enemy);
-        // }, 5000);
+            active_enemies.push(enemy);
+        }
+        
     }
-    else if (enemies.length == 0 && winner == false) {
+    else if (active_enemies.length == 0 && winner == false) {
         win(player);
     }
 
 
     // Draw Enemy
-    for (let enemy of enemies) {
-        context.drawImage(enemyImage_skull,
-            enemy.width * enemy.frameX,
-            enemy.height * enemy.frameY,
-            enemy.width,
-            enemy.height,
+    for (let enemy of active_enemies) {
+        context.drawImage(enemy.image_name,
+                          enemy.width * enemy.frameX,
+                          enemy.height * enemy.frameY,
+                          enemy.width,
+                          enemy.height,
 
-            enemy.x, enemy.y, enemy.width, enemy.height
+                          enemy.x, enemy.y, enemy.width, enemy.height
         );
+        context.font = "10px Arial";
+        context.textAlign = "center";
+        context.fillText("Enemy " + enemy.id, enemy.x + (enemy.width / 2), enemy.y + enemy.height + 5);
 }
 
     // Moving
@@ -295,13 +311,13 @@ function draw() {
 
     // Update Enemy
     // linear motion
-    // for (let enemy of enemies) {
+    // for (let enemy of active_enemies) {
     //     enemy.x += enemy.xChange;
     //     enemy.y += enemy.yChange;
     // }
 
     // FOLLOW PLAYER
-    for (let enemy of enemies) {
+    for (let enemy of active_enemies) {
 
         if (player.x + player.inner_x + player.inner_width <= enemy.x + enemy.inner_x) {
             enemy.x -= enemy.xChange;
@@ -321,13 +337,13 @@ function draw() {
 
 
     //COLLIDING
-    for (let enemy1 = 0; enemy1 < enemies.length; enemy1 += 1) {
-        for (let enemy2 = enemy1 + 1; enemy2 < enemies.length; enemy2 += 1) {
+    for (let enemy1 = 0; enemy1 < active_enemies.length; enemy1 += 1) {
+        for (let enemy2 = enemy1 + 1; enemy2 < active_enemies.length; enemy2 += 1) {
             if (enable_collisions) {
-                if (collides(enemies[enemy1], enemies[enemy2])) {
+                if (collides(active_enemies[enemy1], active_enemies[enemy2])) {
                     console.log("Collision!")
                     // What to do! 🔴🔴🔴
-                    enemies[enemy1].xChange = enemies[enemy1].xChange * -1;
+                    active_enemies[enemy1].xChange = active_enemies[enemy1].xChange * -1;
                     // enemy_amount -= 1;
                 }
             }
@@ -383,7 +399,7 @@ function draw() {
 
 
     // Enemies' Bounds
-    for (let enemy of enemies) {
+    for (let enemy of active_enemies) {
         // Hitting the edge of the canvas
         // left side
         if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
@@ -525,7 +541,7 @@ function deactivate(event) { // 🔴
 function turn(position, state) {
     if (position == "left") {
         if (state.turned == true) {
-            console.log("player is already turned so will not move them")
+            console.log("object is already turned so will not move them")
         }
         else if (state.turned == false) {
             console.log("moving player")
@@ -538,7 +554,7 @@ function turn(position, state) {
     }
     else if (position == "right") {
         if (state.turned == false) {
-            console.log("player is already turned right so will not move them")
+            console.log("object is already turned right so will not move them")
         }
         else if (state.turned == true) {
             state.x += state.inner_x;
@@ -552,22 +568,122 @@ function turn(position, state) {
 
 function enemy_hit() {
     console.log("enemy_hit function reached")
-    for (let enemy of enemies) {
+    for (let enemy of active_enemies) {
         if (player.turned == false) {
-            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width))) && ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))) {
-                //if   (left of enemy's body > right of player's body                    and               right of enemy's body           <  right of player's box)       and  top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
-                //if enemy's body is between the x-plane area where the player's beam starts and ends                                                                              AND  y-plane area
+            // if (
+                    // X VALUES ALIGN?
+                    //(
+                        // AFTER THE START OF THE BEAM
+                        //(
+                            //(enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)
+                        //) 
+                        //&&
+                        // BEFORE THE END OF THE BEAM
+                        //(
+                            //(enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)
+                        //)
+                    //) 
+                    //&&
+                    // Y VALUES ALIGN
+                    //(
+                        // TOP OF ENEMY
+                        //(
+                            // UNDER TOP OF BEAM
+                            //(enemy.y > player.y)
+                            //&&
+                            // ABOVE BOTTOM OF BEAM
+                            //(enemy.y < (player.y + player.height))
+                        //)
+                        //||
+                        // BOTTOM OF ENEMY
+                        //(
+                            // UNDER TOP OF BEAM
+                            //(enemy.y + enemy.height > player.y)
+                            //&&
+                            // ABOVE BOTTOM OF BEAM
+                            //(enemy.y + enemy.height < player.y + player.height)
+                        //)
+                        //||
+                        // BODY OF ENEMY (IF ENEMY IS BIGGER THAN PLAYER AND PLAYER GETS A BODY SHOT (NO HEAD OR FEET ARE SHOT))
+                        //(
+                            // TOP OF ENEMY IS ABOVE PLAYER
+                            //(enemy.y < player.y) 
+                            //&&
+                            // BOTTOM OF ENEMY IS BELOW PLAYER
+                            //((enemy.y + enemy.height) > (player.y + player.height))
+                        //)
+                    //)
+                //) {}
+            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.height + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
                 console.log("DIRECT HIT!");
-                enemies.pop(enemy);
+                let index = active_enemies.indexOf(enemy);
+                active_enemies.splice(index, 1);
                 enemy_amount -= 1;
             }
         }
         else if (player.turned) {
-            if ((      (enemy.x + enemy.inner_x) > player.x && (enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x))            &&              ((enemy.y > player.y && (enemy.y < (player.y + player.height))) || ((enemy.y + enemy.height < player.y + player.height) && (enemy.y + enemy.height > player.y)))          ) {
+            // if (
+                    // X VALUES ALIGN?
+                    //(
+                        // BEFORE THE START OF THE BEAM
+                        //(
+                            //(enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)
+                        //)
+                        //&&
+                        // AFTER THE END OF THE BEAM
+                        //(
+                            //enemy.x > player.x
+                        //)
+                    //) 
+                    //&&
+                    // Y VALUES ALIGN
+                    //(
+                        // TOP OF ENEMY
+                        //(
+                            // UNDER TOP OF BEAM
+                            //(
+                                //enemy.y > player.y
+                            //)
+                            //&&
+                            // ABOVE BOTTOM OF BEAM
+                            //(
+                                //enemy.y < (player.y + player.height)
+                            //)
+                        //)
+                        //||
+                        // BOTTOM OF ENEMY
+                        //(
+                            // UNDER TOP OF BEAM
+                            //(
+                                //(enemy.y + enemy.height) > player.y
+                            //)
+                            //&&
+                            // ABOVE BOTTOM OF BEAM
+                            //(
+                                //(enemy.y + enemy.height) < (player.y + player.height)
+                            //)
+                        //)
+                        //||
+                        // BODY OF ENEMY (IF ENEMY IS BIGGER THAN PLAYER AND PLAYER GETS A BODY SHOT (NO HEAD OR FEET ARE SHOT))
+                        //(
+                            // TOP OF ENEMY IS ABOVE PLAYER
+                            //(
+                                //enemy.y < player.y
+                            //) 
+                            //&&
+                            // BOTTOM OF ENEMY IS BELOW PLAYER
+                            //(
+                                //(enemy.y + enemy.height) > (player.y + player.height)
+                            //)
+                        //)
+                    //)
+                //) {}
+            if ((((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)) && ((enemy.x + enemy.inner_x + enemy.inner_width) > player.x)) && ((((enemy.y + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + enemy.height) > player.y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || (((enemy.y + enemy.inner_y) < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
                 //if   (left of enemy's body > the far left of player's box(beam) and right of enemy's body < start of beam                            and              top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
                 //if enemy's body is between the x-plane area where the player's beam starts and ends                                                  and              y-plane area
                 console.log("DIRECT HIT!");
-                enemies.pop(enemy);
+                let index = active_enemies.indexOf(enemy);
+                active_enemies.splice(index, 1);
                 enemy_amount -= 1;
             }
         }
@@ -608,7 +724,7 @@ function win(player) {
     const top = rect.top;
     console.log("The inner canvas is " + left + "px from the left of the screen. The player is " + player.x + "px from the left of its canvas.");
     
-    player.x = left;
+    player.x = 0 - 9;
     player.y = top;
     round_finished_draw(player);
 }

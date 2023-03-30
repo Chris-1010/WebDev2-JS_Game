@@ -5,8 +5,8 @@ html {
   
 body {
   display: grid;
-  grid-template-columns: 1fr 906px 1fr;
-  grid-template-rows: 1fr 512px 1fr;
+  grid-template-columns: 1fr 1024px 1fr;
+  grid-template-rows: 1fr 640px 1fr;
   height: 100%;
   width: 100%;
   background: linear-gradient(120deg,black,rebeccapurple,cyan);
