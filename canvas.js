@@ -1,8 +1,13 @@
 let canvas;
-let canvas2;  // To achieve post-game state
+let canvas_width = 1024;
 let context;
-let context2;  // To achieve post-game state
 let game_animation;
+
+let row_counter = 2;
+let row_count = 32;
+let col_counter = 2;
+let col_count = 64;
+let finished_tile = false;
 
 let now;
 let fpsInterval;  // 60fps
@@ -56,6 +61,7 @@ const songs = [
     "Doors OST Elevator Jammed.mp3",
     "Ending Theme - Super Mario World.mp3",
     "Flipsville Galaxy.mp3",
+    "Cosmic Cove.mp3",
     "GTA 5- its a setup (ending song).mp3",
     "GTA IV Loading Screen Theme Song.mp3",
     "Honeybloom Galaxy.mp3",
@@ -69,35 +75,39 @@ const songs = [
 ];
 let background_song = songs[randint(0, songs.length - 1)];
 
-let terrain_background = [[73,19,85,59,59,59,59,72,84,21,60,86,86,60,86,86,73,73,73,86,19,58,84,59,59,71,85,58,84,71,58,59],
-                          [73,73,61,59,85,71,72,71,59,24,60,86,73,86,60,86,86,86,73,60,19,84,58,59,59,59,59,84,12,85,58,59],
-                          [60,73,60,61,36,46,46,46,46,22,60,86,73,60,60,60,60,73,73,60,19,59,59,59,59,59,59,59,25,72,58,59],
-                          [60,73,86,60,22,85,58,84,71,21,60,73,60,60,73,73,60,86,73,86,19,59,59,59,59,59,59,84,24,46,58,59],
-                          [73,86,86,86,61,85,9,46,47,21,60,60,86,60,60,60,60,60,73,60,19,58,58,59,59,72,58,59,25,71,58,59],
-                          [60,86,6,7,8,77,25,59,84,21,86,86,73,86,60,60,73,73,86,86,19,59,59,59,59,72,59,59,25,71,58,59],
-                          [60,73,19,20,21,19,25,59,58,89,7,7,7,7,7,7,7,7,7,7,90,59,59,59,59,85,59,59,25,71,58,59],
-                          [73,73,32,33,34,24,10,46,11,59,72,72,59,59,84,58,59,59,59,59,59,59,59,59,59,59,59,58,25,85,58,59],
-                          [73,86,86,60,7,90,59,59,25,59,72,58,59,59,59,59,59,59,59,59,72,58,9,46,46,46,47,59,25,58,58,59],
-                          [7,49,73,73,84,59,59,71,24,46,46,46,46,46,11,59,59,84,85,59,58,71,25,59,58,71,84,59,25,84,58,59],
-                          [23,21,86,73,77,58,71,59,25,72,59,59,59,9,10,47,59,59,59,59,85,59,25,59,71,59,59,59,25,85,58,59],
-                          [46,22,60,60,19,59,59,59,25,59,59,59,59,25,59,59,59,59,59,59,59,59,25,59,59,85,84,59,25,72,58,59],
-                          [46,22,86,73,90,59,59,59,38,59,59,84,59,25,71,72,59,59,59,72,59,59,25,71,59,59,84,59,25,58,58,59],
-                          [23,35,8,48,84,85,59,72,59,59,59,59,59,24,46,46,46,46,46,46,46,46,22,58,84,59,59,59,25,85,58,59],
-                          [33,33,34,19,59,71,84,59,58,71,85,84,59,25,59,59,59,59,85,85,72,59,35,46,46,46,46,46,22,58,58,59],
-                          [85,58,71,85,72,59,85,85,58,84,72,71,85,38,85,84,59,71,72,59,71,72,58,71,71,59,72,84,25,84,58,59],
-                          [84,84,72,59,84,59,72,84,72,71,72,84,72,58,72,72,84,84,85,58,58,58,85,71,59,71,85,84,25,59,58,59],
-                          [71,71,84,58,85,71,84,85,72,84,72,72,72,72,85,59,72,58,59,72,85,59,58,58,58,84,71,84,25,58,59,59],
-                          [59,71,59,58,71,85,59,59,84,72,58,84,85,59,58,72,71,59,85,84,84,59,58,71,71,59,72,71,25,71,72,72],
-                          [72,71,71,59,59,85,71,72,84,85,85,58,72,58,72,72,71,85,84,58,85,85,58,58,71,85,58,58,25,84,85,85]]
+let terrain_background = [
+    [71,72,71,71,59,85,85,84,84,59,58,72,71,59,72,85,71,72,71,84],
+[72,58,84,59,58,58,85,72,58,84,85,58,72,71,84,84,84,72,85,84],
+[85,85,72,85,71,85,59,84,72,85,71,59,71,58,84,84,72,59,59,72],
+[84,85,59,58,58,85,85,58,84,85,59,58,85,71,71,85,58,59,71,86],
+[84,85,84,84,58,58,71,72,71,58,58,84,59,85,72,84,59,72,73,60],
+[71,58,71,59,72,58,58,71,84,59,85,59,84,85,58,85,58,86,58,73],
+[84,72,71,85,71,85,71,71,58,71,59,72,71,86,60,86,60,58,73,58],
+[59,84,85,71,84,72,71,58,73,60,86,86,73,60,60,86,58,73,58,60],
+[60,60,60,86,6,7,7,7,7,7,7,7,7,7,7,8,73,58,60,58],
+[86,6,7,7,90,58,58,58,58,58,58,58,58,58,58,21,58,60,58,73],
+[60,19,85,72,84,85,58,59,58,72,72,72,58,71,72,21,60,58,86,58],
+[60,19,85,59,72,59,59,58,84,72,58,85,84,59,85,21,58,86,58,60],
+[86,19,72,58,72,85,59,84,85,85,71,84,58,71,59,21,60,58,73,58],
+[86,19,59,58,72,59,58,85,84,71,71,58,85,58,72,21,58,73,58,60],
+[86,19,85,84,72,85,85,84,58,72,85,72,84,84,85,21,86,58,73,58],
+[86,32,33,33,33,33,33,33,33,33,33,33,33,33,33,34,58,73,58,86]    
+]
 
 let tilesPerRow = 13;
 let tileSize = 16;
+let starting_row = 8;
+let end_row = 16;
+let end_col = 20;
+let shift_down = 24;
 
 let player = {
     x: 0,
     y: 0,
     inner_x: 9,
+    inner_y: 4,
     inner_width: 15,
+    inner_height: 14,
     width: 106,
     height: 22,
     frameX: 0,
@@ -107,11 +117,24 @@ let player = {
     turned: false
 };
 
+let shop = {
+    x: 0,
+    y: 0,
+    inner_x: 56,
+    inner_width: 88,
+    inner_height: 111,
+    width: 200,
+    height: 149,
+    frameX: 0,
+    in_view: "no"
+}
+
 let enemies = ["skull"];
 let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-let enemy_amount = 1;
+let enemy_amount = 0;
 let enemy_counter = 0;
+let ash_piles = [];
 
 let moveLeft = false;
 let moveRight = false;
@@ -119,8 +142,11 @@ let moveUp = false;
 let moveDown = false;
 let shoot = false;
 
-let counter = 0;
-let wait_counter = 0;
+let in_shop = false;
+
+let player_counter = 0;
+let collision_counter = 0;
+let unconditional_counter = 0;
 let cooldown = "off";
 
 let winner = false;
@@ -129,8 +155,10 @@ let enable_collisions = true;
 
 let playerImage = new Image();
 let enemyImage_skull = new Image();
-
+let AshImage = new Image();
 let BackgroundImage = new Image();
+let ShopImage1 = new Image();
+let ShopInterior1 = new Image();
 
 
 
@@ -143,6 +171,7 @@ function init() {
     context.imageSmoothingEnabled = false;
 
     let background_audio = new Audio("/Assets/Audio/" + background_song);
+    background_audio.currentTime = randint(0, 60);
     background_audio.play();
     background_audio.addEventListener('ended', () => {
         background_audio.currentTime = 0;
@@ -152,6 +181,8 @@ function init() {
 
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
+    shop.x = canvas.width / 2 - shop.inner_width;
+    shop.y = -shop.height;
 
 
 
@@ -163,7 +194,10 @@ function init() {
     load_assets([
         { "var": playerImage, "url": "Assets/Player/player.png" },
         { "var": enemyImage_skull, "url": "Assets/Enemies/fire-skull.png" },
-        { "var": BackgroundImage, "url": "Assets/Tileset/tiles.png" }
+        { "var": AshImage, "url": "Assets/Enemies/Ash.png" },
+        { "var": BackgroundImage, "url": "Assets/Tileset/tiles.png" },
+        { "var": ShopImage1, "url": "Assets/Tileset/Shop1.png" },
+        { "var": ShopInterior1, "url": "Assets/Tileset/Shop1_BG.png" }
     ], draw);
 }
 
@@ -191,70 +225,152 @@ function draw() {
     // Clear Canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw Background Sequentially
+    // if (row_counter < terrain_background.length) {
+    //         for (let r = 0; r < row_counter; r += 1) {
+    //             if (finished_tile == true) {
+    //                 break;
+    //             }
+    //             else {
+    //                 for (let c = 0; c >= 0; c += 1) {
+    //                     if (c < col_counter) {
+    //                         if (c > terrain_background[0].length) {
+    //                             row_counter += 1;
+    //                             col_counter = 2;
+    //                             break;
+    //                         }
+    //                         else {
+    //                         let tile = terrain_background[r][c];
+    //                         if (tile >= 0) {
+    //                             let tileRow = Math.floor(tile / tilesPerRow);
+    //                             let tileCol = Math.floor(tile % tilesPerRow);
+    //                             context.drawImage(BackgroundImage,
+    //                                 tileCol * tileSize,
+    //                                 tileRow * tileSize,
+    //                                 tileSize,
+    //                                 tileSize,
+                
+    //                                 c * (tileSize / 3.4),
+    //                                 r * (tileSize / 3.4),
+    //                                 tileSize / 3.4,
+    //                                 tileSize / 3.4);
+                                
+    //                             }
+    //                         }
+    //                     }
+    //                     else {
+    //                         if (r > row_counter) {
+    //                             finished_tile = true;
+    //                         }
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     finished_tile = false;
+    //     col_counter += 1;
+
     // Draw background on canvas
-    for (let r = 0; r < terrain_background.length; r += 1) {
-        for (let c = 0; c < terrain_background[0].length; c += 1) {
+    for (let r = starting_row; r < end_row; r += 1) {
+        for (let c = 0; c < end_col; c += 1) {
             let tile = terrain_background[r][c];
             if (tile >= 0) {
                 let tileRow = Math.floor(tile / tilesPerRow);
                 let tileCol = Math.floor(tile % tilesPerRow);
-                context.drawImage(BackgroundImage,
-                    tileCol * tileSize,
-                    tileRow * tileSize,
-                    tileSize,
-                    tileSize,
-
-                    c * tileSize,
-                    r * tileSize,
-                    tileSize,
-                    tileSize);
+                if (winner) {
+                    context.drawImage(BackgroundImage,
+                            tileCol * tileSize,
+                            tileRow * tileSize,
+                            tileSize,
+                            tileSize,
+    
+                            c * (tileSize / 1.06), //- (canvas_width - 1024)/0.5,
+                            r * (tileSize / 1.2) - 3.4*shift_down,
+                            tileSize / 1.06,
+                            tileSize / 1.2)
+                    }
+                    else {
+                        context.drawImage(BackgroundImage,
+                            tileCol * tileSize,
+                            tileRow * tileSize,
+                            tileSize,
+                            tileSize,
+    
+                            c * (tileSize / 1.06),
+                            r * (tileSize / 1.2) - 3.4*shift_down,
+                            tileSize / 1.06,
+                            tileSize / 1.2);
+                    }
             }
         }
     }
 
+    // Draw shop
+    context.drawImage(ShopImage1,
+        shop.width * shop.frameX,
+        0,
+        shop.width,
+        shop.height,
+        
+        shop.x, shop.y, shop.width, shop.height)
 
-    // Draw Player in first phase where game has not been won
-    if (winner == false) {
-        context.drawImage(playerImage,
-            player.width * player.frameX,
-            player.height * player.frameY,
-            player.width,
-            player.height,
-
-            player.x, player.y, player.width, player.height
-        );
+    // Draw Ash Piles
+    for (let ash_pile of ash_piles) {
+        context.drawImage(AshImage,
+            0,
+            0,
+            30,
+            13,
+    
+            ash_pile.x, ash_pile.y, ash_pile.width, ash_pile.inner_height
+            );
     }
 
+    // Draw Player
+    context.drawImage(playerImage,
+        player.width * player.frameX, // starting left-hand side
+        player.height * player.frameY, // starting left-hand top
+        player.width,
+        player.height,
 
+        player.x, player.y, player.width, player.height
+    );
+
+
+    // Create Enemies
     if (active_enemies.length < enemy_amount) {
         enemy_counter += 1;
         if (enemy_randomiser == "skull") {
             let enemy = {
                 id : enemy_counter,
+                type : "skull",
                 image_name : enemyImage_skull,
-                x: randint(-1, 1) * canvas.width,
-                y: randint(-50, canvas.height + 50),
+                x: canvas.width - ((canvas_width) * randint(0,1)),
+                y: randint(50, canvas.height - 50),
                 inner_x: 7,
                 inner_y: 12,
-                inner_width: 10,
-                inner_height: 14,
-                width: 26,
-                height: 30,
+                inner_width: 8,
+                inner_height: 13,
+                width: 25,
+                height: 29,
                 frameX: 0,
                 frameY: 0,
-                xChange: 1,
-                yChange: 1,
+                xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
+                yChange: 2 - (4 * randint(0, 1)),
+                counter : 0
             };
             active_enemies.push(enemy);
         }
         
     }
+    // WIN Round!
     else if (active_enemies.length == 0 && winner == false) {
-        win(player);
+        winner = true;
     }
 
 
-    // Draw Enemy
+    // Draw Enemies
     for (let enemy of active_enemies) {
         context.drawImage(enemy.image_name,
                           enemy.width * enemy.frameX,
@@ -267,7 +383,17 @@ function draw() {
         context.font = "10px Arial";
         context.textAlign = "center";
         context.fillText("Enemy " + enemy.id, enemy.x + (enemy.width / 2), enemy.y + enemy.height + 5);
-}
+    }
+
+
+    
+    if (in_shop == true) {
+        context.drawImage(ShopInterior1, 0, 0, canvas.width, canvas.height)
+    }
+
+
+
+    // Player Movement & Physics
 
     // Moving
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
@@ -294,8 +420,8 @@ function draw() {
 
 
             
-            counter += 1;
-            if (counter % 3 == 0) {
+            player_counter += 1;
+            if (player_counter % 3 == 0) {
             player.frameX = (player.frameX + 1) % 5;
             }
         }
@@ -304,47 +430,193 @@ function draw() {
         player.yChange = player.yChange * 0.8;
     }
 
-    // Update the Player
     player.x += player.xChange;
     player.y += player.yChange;
 
+    player.xChange = player.xChange * 0.95;
+    player.yChange = player.yChange * 0.95;
 
-    // Update Enemy
-    // linear motion
-    // for (let enemy of active_enemies) {
-    //     enemy.x += enemy.xChange;
-    //     enemy.y += enemy.yChange;
-    // }
 
-    // FOLLOW PLAYER
+
+    // Enemy Movement
     for (let enemy of active_enemies) {
-
-        if (player.x + player.inner_x + player.inner_width <= enemy.x + enemy.inner_x) {
-            enemy.x -= enemy.xChange;
-        }
-        else if (player.x + player.inner_x >= enemy.x + enemy.inner_x + enemy.inner_width) {
+        if (enemy.type == "skull") {
+                // linear motion
             enemy.x += enemy.xChange;
-        }
-
-        if (player.y + player.height <= enemy.y) {
-            enemy.y -= enemy.yChange;
-        }
-        else if (player.y >= enemy.y + enemy.height) {
             enemy.y += enemy.yChange;
+
+            if (enemy.xChange < 0) {
+                enemy.frameY = 1;
+            }
+            enemy.counter += 1;
+            if (enemy.counter % 3 == 0) {
+    	            enemy.frameX = (enemy.frameX + 1) % 8;
+    
+            }
         }
+        else {
+            // Follow Player
+            if (player.x + player.inner_x + player.inner_width <= enemy.x + enemy.inner_x) {
+                enemy.x -= enemy.xChange;
+            }
+            else if (player.x + player.inner_x >= enemy.x + enemy.inner_x + enemy.inner_width) {
+                enemy.x += enemy.xChange;
+            }
+
+            if (player.y + player.height <= enemy.y) {
+                enemy.y -= enemy.yChange;
+            }
+            else if (player.y >= enemy.y + enemy.height) {
+                enemy.y += enemy.yChange;
+            }
+        }
+    }
+
+    // Ash Pile Movement 
+    for (let ash_pile of ash_piles) {
+        ash_pile.xChange = ash_pile.xChange * 0.75;
+        if (ash_pile.y + ash_pile.height <= canvas.height) {
+        ash_pile.yChange += 0.3;
+        }
+        ash_pile.x += ash_pile.xChange;
+        ash_pile.y += ash_pile.yChange;
+    }
+
+    // Shop Animation
+    if (unconditional_counter % 3 == 0) {
+        shop.frameX = (shop.frameX + 1) % 6;
     }
 
 
 
-    //COLLIDING
-    for (let enemy1 = 0; enemy1 < active_enemies.length; enemy1 += 1) {
-        for (let enemy2 = enemy1 + 1; enemy2 < active_enemies.length; enemy2 += 1) {
+    // Player Bounds
+    // Hit top
+    if (player.y <= shift_down ) {
+        player.y = shift_down;
+    }
+    // Hit bottom
+    else if ((player.y + player.inner_y + player.inner_height) > canvas.height - shift_down) {
+        player.y = canvas.height - player.inner_height - shift_down;
+    }
+    // Hitting the edge of the canvas
+    // left side
+    if (player.x + player.inner_x + player.inner_width < 0) {
+        player.x = canvas.width - player.inner_x;  // Come back at the right edge
+    }
+    // right side
+    if (player.x + player.inner_x > canvas.width) {
+        player.x = -(player.inner_x + player.inner_width);  // Come back at left edge
+    }
+    // when shop in view
+    if (shop.in_view == "yes") {
+        if ((player.y < shop.y + shop.inner_height - 10) && (player.x + player.inner_x > shop.x + shop.inner_x && player.x + player.inner_x + player.inner_width < shop.x + shop.inner_x + shop.inner_width)) {
+            player.y = shop.y + shop.inner_height - 10;
+        }
+    }
+
+
+    // Enemies' Bounds
+    for (let enemy of active_enemies) {
+        if (enemy.type == "skull") {
+            // Hitting the edge of the canvas
+            // left side
+            if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
+                enemy.x = canvas.width - player.inner_x;  // Come back at the right edge
+            }
+            // right side
+            if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
+                enemy.x = -24;  // Come back at left edge
+            }
+            // top
+            if (enemy.y + enemy.inner_y <= shift_down) {
+                enemy.yChange = -enemy.yChange;
+            }
+            // bottom
+            if (enemy.y + enemy.inner_y + enemy.inner_height >= canvas.height - shift_down) {
+                enemy.yChange = -enemy.yChange;
+            }
+    }
+    }
+
+    // Ash Pile Bounds
+    for (let ash_pile of ash_piles) {
+        if (ash_pile.y + ash_pile.inner_height > canvas.height) {
+            ash_pile.yChange = 0;
+            ash_pile.y = canvas.height - ash_pile.inner_height;
+        }
+    }
+
+
+    if (moveLeft) {
+        turn("left", player);
+        player.xChange -= 0.8;  // Acceleration!
+    }
+    if (moveRight) {
+        turn("right", player);
+        player.xChange += 0.8;
+    }
+    if (moveUp) {
+        player.yChange -= 0.8;
+    }
+    if (moveDown) {
+        player.yChange += 0.8;
+    }
+
+    // Shooting
+    if (shoot != false) {
+        if (shoot == "beam" && cooldown != "on") {
+            if (player.turned == false) {
+                player.frameY = 2;
+            }
+            else if (player.turned) {
+                player.frameY = 7;
+            }
+
+            if (player.frameX < 6) {
+                player_counter += 1;
+                if (player_counter == 1 || player_counter % 4 == 0) {
+                    player.frameX += 1;
+                }
+            }
+            else if (player.frameX == 6) {
+                player.frameX = 7;
+                enemy_hit();
+            }
+            else if (player.frameX == 7) {
+                player.frameX = 6;
+                enemy_hit();
+            }
+
+
+            if (player.frameX == 12) {
+                shoot = false;
+                cooldown = "on";
+                player.frameX = 0;
+            }
+        }
+
+        else if (shoot == "wind_down") {
+            if (player.frameX > 0) {
+                player_counter -= 1
+                player.frameX -= 1;
+            }
+            else {
+                shoot = false;
+            }
+        }
+    }
+
+    
+    //COLLIDING WITH OTHER ENEMY
+    for (let target_enemy of active_enemies) {
+        for (let compared_enemy of active_enemies) {
             if (enable_collisions) {
-                if (collides(active_enemies[enemy1], active_enemies[enemy2])) {
-                    console.log("Collision!")
-                    // What to do! 🔴🔴🔴
-                    active_enemies[enemy1].xChange = active_enemies[enemy1].xChange * -1;
-                    // enemy_amount -= 1;
+                if (target_enemy != compared_enemy) {
+                    if (collides(target_enemy, compared_enemy)) {
+                        console.log("Collision!")
+                        // What to do! 🔴🔴🔴
+                        target_enemy.xChange -= .1;
+                    }
                 }
             }
         }
@@ -368,113 +640,39 @@ function draw() {
         enable_collisions = false;
 
         // Wait for some time before enabling collisions again
-        wait_counter += 1;
-        if (wait_counter == 50) {
-            wait_counter = 0;
+        collision_counter += 1;
+        if (collision_counter == 50) {
+            collision_counter = 0;
             enableCollisions();
         }
     }
 
-    // Physics
-    player.xChange = player.xChange * 0.95; // Friction again
-    player.yChange = player.yChange * 0.95;
-
-
-    // Stop player from going out of bounds
-    if (player.y < 0) {
-        player.y = 0;
-    }
-    else if ((player.y + player.height) > canvas.height) {
-        player.y = canvas.height - player.height
-    }
-    // Hitting the edge of the canvas
-    // left side
-    if (player.x + player.inner_x + player.inner_width < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-        player.x = canvas.width - player.inner_x;  // Come back at the right edge
-    }
-    // right side
-    if (player.x + player.inner_x > canvas.width) { // Hitting the right edge --- similar here
-        player.x = -(player.inner_x + player.inner_width);  // Come back at left edge
-    }
-
-
-    // Enemies' Bounds
-    for (let enemy of active_enemies) {
-        // Hitting the edge of the canvas
-        // left side
-        if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-            enemy.x = canvas.width - player.inner_x;  // Come back at the right edge
+    if (winner) {
+        if (starting_row > 0) {
+            starting_row -= 1;
         }
-        // right side
-        if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
-            enemy.x = -24;  // Come back at left edge
+        unconditional_counter += 1;
+        // if (unconditional_counter % 1 == 0) {
+            if (shift_down > 10) {
+            // starting_row -= 1;
+            shift_down -= 0.3;
+            player.y += 1;
+            shop.y += 2;
+            shop.in_view = "yes"
+            }
+        // }
+        // if (shift_down < 49) {
+        //     // starting_row -= 1;
+        //     shift_down += 1;
+        //     player.y += 1;
+        // }
+        canvas_width += 1;
+        if (canvas_width <= window.innerWidth) {
+            // canvas.style.cssText = "width:" + canvas_width + "px";
         }
     }
 
-
-
-
-    if (moveLeft) {
-        turn("left", player);
-        player.xChange -= 0.8;  // Acceleration!
-    }
-    if (moveRight) {
-        turn("right", player);
-        player.xChange += 0.8;
-    }
-    if (moveUp) {
-        player.yChange -= 0.8;
-    }
-    if (moveDown) {
-        player.yChange += 0.8;
-    }
-
-    if (shoot != false) {
-        console.log("Shoot = " + shoot)
-        if (shoot == "beam" && cooldown != "on") {
-            if (player.turned == false) {
-                player.frameY = 2;
-            }
-            else if (player.turned) {
-                player.frameY = 7;
-            }
-
-            if (player.frameX < 6) {
-                counter += 1;
-                if (counter == 1 || counter % 4 == 0) {
-                    player.frameX += 1;
-                }
-            }
-            else if (player.frameX == 6) {
-                player.frameX = 7;
-                enemy_hit();
-            }
-            else if (player.frameX == 7) {
-                player.frameX = 6;
-                enemy_hit();
-            }
-
-
-            if (player.frameX == 12) {
-                shoot = false;
-                cooldown = "on";
-                player.frameX = 0;
-            }
-        }
-
-        else if (shoot == "wind_down") {
-            if (player.frameX > 0) {
-                counter -= 1
-                player.frameX -= 1;
-            }
-            else {
-                shoot = false;
-            }
-        }
-    }
-
-
-
+    unconditional_counter += 1;
     // END OF DRAW()
 }
 
@@ -485,28 +683,34 @@ function activate(event) {  // 🟢
 
     switch (key) {
         case "ArrowLeft":
-            if (shoot != "beam") {
+            if (shoot != "beam" && in_shop == false) {
                 moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
-            if (shoot != "beam") {
+            if (shoot != "beam" && in_shop == false) {
                 moveRight = true;
             }
             break;
         case "ArrowUp":
-            if (shoot != "beam") {
+            if (shoot != "beam" && in_shop == false) {
                 moveUp = true;
             }
             break;
         case "ArrowDown":
-            if (shoot != "beam") {
+            if (shoot != "beam" && in_shop == false) {
                 moveDown = true;
             }
             break;
         case " ":
-
-            if (shoot == false) {
+            if (shop.in_view == "yes" && in_shop == false && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {
+                in_shop = true;
+            }
+            else if (in_shop == true) {
+                in_shop = false;
+            }
+            if (shoot == false && winner != true) {
+                player.frameX = 0;
                 moveUp = moveRight = moveLeft = moveDown = false;
                 shoot = "beam";
             }
@@ -532,7 +736,7 @@ function deactivate(event) { // 🔴
             break;
         case " ":
             if (shoot == "beam") {
-                counter = 10;
+                player_counter = 10;
                 shoot = "wind_down";
             }
     }
@@ -541,10 +745,8 @@ function deactivate(event) { // 🔴
 function turn(position, state) {
     if (position == "left") {
         if (state.turned == true) {
-            console.log("object is already turned so will not move them")
         }
         else if (state.turned == false) {
-            console.log("moving player")
             state.x -= state.width - state.inner_x - state.inner_width;
         }
 
@@ -553,10 +755,7 @@ function turn(position, state) {
         state.inner_x = 80;
     }
     else if (position == "right") {
-        if (state.turned == false) {
-            console.log("object is already turned right so will not move them")
-        }
-        else if (state.turned == true) {
+        if (state.turned == true) {
             state.x += state.inner_x;
         }
 
@@ -567,7 +766,6 @@ function turn(position, state) {
 }
 
 function enemy_hit() {
-    console.log("enemy_hit function reached")
     for (let enemy of active_enemies) {
         if (player.turned == false) {
             // if (
@@ -598,7 +796,7 @@ function enemy_hit() {
                         // BOTTOM OF ENEMY
                         //(
                             // UNDER TOP OF BEAM
-                            //(enemy.y + enemy.height > player.y)
+                            //(enemy.y + enemy.height > player.y + player.inner_y)
                             //&&
                             // ABOVE BOTTOM OF BEAM
                             //(enemy.y + enemy.height < player.y + player.height)
@@ -614,11 +812,26 @@ function enemy_hit() {
                         //)
                     //)
                 //) {}
-            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.height + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
+            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + player.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
                 console.log("DIRECT HIT!");
                 let index = active_enemies.indexOf(enemy);
                 active_enemies.splice(index, 1);
                 enemy_amount -= 1;
+                if (player.x + player.inner_x + player.inner_width < enemy.x && enemy.xChange < 0) {
+                    console.log("Changing xChange of enemy. Their xChange was " + enemy.xChange)
+                    enemy.xChange = enemy.xChange * -1;
+                    console.log("is now " + enemy.xChange)
+                }
+                else if (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x && enemy.xChange < 0) {
+                    enemy.xChange = -enemy.xChange;
+                }
+                enemy.y += enemy.height / 2;
+                enemy.xChange = enemy.xChange * 5;
+                enemy.yChange = -3;
+                enemy.width = 30;
+                enemy.height = 13;
+                enemy.inner_height = 13 + randint(-5,5)
+                ash_piles.push(enemy);
             }
         }
         else if (player.turned) {
@@ -655,7 +868,7 @@ function enemy_hit() {
                         //(
                             // UNDER TOP OF BEAM
                             //(
-                                //(enemy.y + enemy.height) > player.y
+                                //(enemy.y + enemy.height) > player.y + player.inner_y
                             //)
                             //&&
                             // ABOVE BOTTOM OF BEAM
@@ -678,173 +891,31 @@ function enemy_hit() {
                         //)
                     //)
                 //) {}
-            if ((((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)) && ((enemy.x + enemy.inner_x + enemy.inner_width) > player.x)) && ((((enemy.y + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + enemy.height) > player.y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || (((enemy.y + enemy.inner_y) < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
+            if ((((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)) && ((enemy.x + enemy.inner_x + enemy.inner_width) > player.x)) && ((((enemy.y + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + enemy.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || (((enemy.y + enemy.inner_y) < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
                 //if   (left of enemy's body > the far left of player's box(beam) and right of enemy's body < start of beam                            and              top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
                 //if enemy's body is between the x-plane area where the player's beam starts and ends                                                  and              y-plane area
                 console.log("DIRECT HIT!");
                 let index = active_enemies.indexOf(enemy);
                 active_enemies.splice(index, 1);
                 enemy_amount -= 1;
+
+                enemy.xChange = enemy.xChange * 5;
+                if (player.x + player.inner_x + player.inner_width < enemy.x && enemy.xChange < 0) {
+                    console.log("Changing xChange of enemy")
+                    enemy.xChange = enemy.xChange * -1;
+                }
+                else if (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x && enemy.xChange < 0) {
+                    enemy.xChange = -enemy.xChange;
+                }
+                enemy.y += enemy.height / 2;
+                enemy.yChange = -3;
+                enemy.width = 30;
+                enemy.height = 13;
+                ash_piles.push(enemy);
             }
         }
     }
 }
-
-function win(player) {
-    winner = true;
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw background on canvas
-    for (let r = 0; r < terrain_background.length; r += 1) {
-        for (let c = 0; c < terrain_background[0].length; c += 1) {
-            let tile = terrain_background[r][c];
-            if (tile >= 0) {
-                let tileRow = Math.floor(tile / tilesPerRow);
-                let tileCol = Math.floor(tile % tilesPerRow);
-                context.drawImage(BackgroundImage,
-                    tileCol * tileSize,
-                    tileRow * tileSize,
-                    tileSize,
-                    tileSize,
-
-                    c * tileSize,
-                    r * tileSize,
-                    tileSize,
-                    tileSize);
-            }
-        }
-    }
-    window.cancelAnimationFrame(game_animation); // must stop this if you want to run another
-    canvas2 = document.getElementById("outer");
-    context2 = canvas2.getContext("2d");
-    context2.imageSmoothingEnabled = false;
-
-    const rect = canvas.getBoundingClientRect();
-    const left = rect.left;
-    const top = rect.top;
-    console.log("The inner canvas is " + left + "px from the left of the screen. The player is " + player.x + "px from the left of its canvas.");
-    
-    player.x = 0 - 9;
-    player.y = top;
-    round_finished_draw(player);
-}
-
-
-
-function round_finished_draw(post_game_player) {
-    
-    draw2();
-    console.log("new player's x: " + post_game_player.x + " and y: " + post_game_player.y + "px")
-    function draw2() {
-        window.requestAnimationFrame(draw2);
-        console.log("drawing new player's x at: " + post_game_player.x + " and y at: " + post_game_player.y + "px")
-        shoot = false;
-
-        fpsInterval = 50;
-        let now = Date.now();
-        let elapsed = now - then;
-        if (elapsed <= fpsInterval) {
-            return;
-        }
-        then = now - (elapsed % fpsInterval);
-
-
-        // Clear Canvas
-        context2.clearRect(0, 0, canvas2.width, canvas2.height);
-
-        // Draw Player in same position as when game won
-        context2.drawImage(playerImage,
-            post_game_player.width * post_game_player.frameX,
-            post_game_player.height * post_game_player.frameY,
-            post_game_player.width,
-            post_game_player.height,
-
-            post_game_player.x, post_game_player.y, post_game_player.width, post_game_player.height
-        );
-
-        // Moving
-        if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
-            post_game_player.frameY = 1
-            if (post_game_player.turned) {
-                post_game_player.frameY = 6;
-            }
-            post_game_player.frameX = (post_game_player.frameX + 1) % 8;
-            }
-        // if idle
-        if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
-
-            if (shoot == false) {
-
-                if (post_game_player.frameY != 0 && post_game_player.frameY != 5) {
-                    post_game_player.frameX = 0;  // running-sprite row has 8 columns whereas the idle-sprite row only has 5
-                    if (post_game_player.turned) {
-                        post_game_player.frameY = 5
-                    }
-                    else {
-                        post_game_player.frameY = 0;
-                    }
-                }
-        
-        
-                
-                    counter += 1;
-                    if (counter % 3 == 0) {
-                    post_game_player.frameX = (post_game_player.frameX + 1) % 5;
-                    }
-                }
-        
-                post_game_player.xChange = post_game_player.xChange * 0.8; // Friction increased when stopped
-                post_game_player.yChange = post_game_player.yChange * 0.8;
-            }
-
-        // Update the Player
-        post_game_player.x += post_game_player.xChange;
-        post_game_player.y += post_game_player.yChange;
-
-
-        // Physics
-        post_game_player.xChange = post_game_player.xChange * 0.95; // Friction!
-        post_game_player.yChange = post_game_player.yChange * 0.95; // Friction!
-
-
-        // Stop player from going out of bounds
-        if (post_game_player.y < 0) {
-            post_game_player.y = 0;
-        }
-        else if ((post_game_player.y + post_game_player.height) > canvas2.height) {
-            post_game_player.y = canvas2.height - post_game_player.height
-        }
-        // Hitting the edge of the canvas
-        // left side
-        if (post_game_player.x + post_game_player.inner_x + post_game_player.inner_width < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-            post_game_player.x = canvas2.width - post_game_player.inner_x;  // Come back at the right edge
-        }
-        // right side
-        if (post_game_player.x + post_game_player.inner_x > canvas2.width) { // Hitting the right edge --- similar here
-            post_game_player.x = -(post_game_player.inner_x + post_game_player.inner_width);  // Come back at left edge
-        }
-
-
-        if (moveLeft) {
-            turn("left", post_game_player);
-            post_game_player.xChange -= 0.8;
-        }
-        if (moveRight) {
-            turn("right", post_game_player);
-            post_game_player.xChange += 0.8;
-        }
-        if (moveUp) {
-            post_game_player.yChange -= 0.8;
-        }
-        if (moveDown) {
-            post_game_player.yChange += 0.8;
-        }
-
-
-
-        //End of draw2()
-    }
-};
 
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run
