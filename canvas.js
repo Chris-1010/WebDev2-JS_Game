@@ -1,5 +1,4 @@
 let canvas;
-let canvas_width = 1024;
 let context;
 let game_animation;
 
@@ -153,14 +152,41 @@ let winner = false;
 
 let enable_collisions = true;
 
+
 let playerImage = new Image();
+
 let enemyImage_skull = new Image();
 let AshImage = new Image();
+
 let BackgroundImage = new Image();
+
 let ShopImage1 = new Image();
 let ShopInterior1 = new Image();
+let ShowroomImage = new Image();
+let Podium = new Image();
 
+let Fox_Image = new Image();
 
+let shop1_inventory = [];
+let shop2_inventory = [];
+let shop3_inventory = [];
+// Possible Items in Shop
+let fox = {
+    name: "Fox",
+    image: Fox_Image,
+    x: 0,
+    y: 0,
+    width: 32,
+    height: 32,
+    inner_x: 6,
+    inner_y: 17,
+    inner_width: 19,
+    inner_height: 15,
+    frameX: 0,
+    frameY: 0
+}
+
+let items = [fox];
 
 
 document.addEventListener("DOMContentLoaded", init, false)
@@ -185,6 +211,10 @@ function init() {
     shop.y = -shop.height;
 
 
+    for (let times = 0; times < 1; ++times) {
+        shop1_inventory.push(items[randint(0, items.length - 1)])
+    }
+    console.log("Shop 1's Inventory: " + shop1_inventory[0].name)
 
 
     window.addEventListener("keydown", activate, false)
@@ -197,7 +227,11 @@ function init() {
         { "var": AshImage, "url": "Assets/Enemies/Ash.png" },
         { "var": BackgroundImage, "url": "Assets/Tileset/tiles.png" },
         { "var": ShopImage1, "url": "Assets/Tileset/Shop1.png" },
-        { "var": ShopInterior1, "url": "Assets/Tileset/Shop1_BG.png" }
+        { "var": ShopInterior1, "url": "Assets/Tileset/Shop1_BG.png" },
+        { "var": ShowroomImage, "url": "Assets/Tileset/black spotlight.png" },
+        { "var": Podium, "url": "Assets/Tileset/Shop_Podium.png" },
+
+        { "var": Fox_Image, "url": "Assets/Player/Fox Sprite Sheet.png"}
     ], draw);
 }
 
@@ -386,9 +420,58 @@ function draw() {
     }
 
 
-    
+    // Draw Interior of shop
     if (in_shop == true) {
-        context.drawImage(ShopInterior1, 0, 0, canvas.width, canvas.height)
+        context.drawImage(ShowroomImage, 0, 0, canvas.width, canvas.height)
+        if (unconditional_counter > 70) {
+            context.drawImage(ShopInterior1, 0, 0, canvas.width, canvas.height)
+        }
+        if (unconditional_counter >= 10) {
+            context.drawImage(Podium,
+                              0,
+                              0,
+                              500,
+                              500,
+                              
+                              10,
+                              80,
+                              120,
+                              120);
+            context.drawImage(shop1_inventory[0].image,
+                              shop1_inventory[0].width * shop1_inventory[0].frameX,
+                              shop1_inventory[0].height * shop1_inventory[0].frameY,
+                              shop1_inventory[0].width,
+                              shop1_inventory[0].height,
+                              
+                              35,
+                              35,
+                              shop1_inventory[0].width * 2,
+                              shop1_inventory[0].height * 2)
+        }
+        if (unconditional_counter >= 30) {
+            context.drawImage(Podium,
+                              0,
+                              0,
+                              500,
+                              500,
+                              
+                              90,
+                              80,
+                              120,
+                              120);
+        }
+        if (unconditional_counter >= 50) {
+            context.drawImage(Podium,
+                              0,
+                              0,
+                              500,
+                              500,
+                              
+                              170,
+                              80,
+                              120,
+                              120);
+        }
     }
 
 
@@ -482,9 +565,16 @@ function draw() {
         ash_pile.y += ash_pile.yChange;
     }
 
-    // Shop Animation
+    // Shop-Exterior Animation
     if (unconditional_counter % 3 == 0) {
         shop.frameX = (shop.frameX + 1) % 6;
+    }
+
+    // Item Animations
+    if (shop1_inventory.includes(fox)) {
+        shop1_inventory[shop1_inventory.indexOf(fox)].frameY = 5;
+        if (unconditional_counter % 9 == 0 || unconditional_counter % 11 == 0)
+        shop1_inventory[shop1_inventory.indexOf(fox)].frameX = (shop1_inventory[shop1_inventory.indexOf(fox)].frameX + 1) % 5;
     }
 
 
@@ -666,10 +756,6 @@ function draw() {
         //     shift_down += 1;
         //     player.y += 1;
         // }
-        canvas_width += 1;
-        if (canvas_width <= window.innerWidth) {
-            // canvas.style.cssText = "width:" + canvas_width + "px";
-        }
     }
 
     unconditional_counter += 1;
@@ -705,6 +791,7 @@ function activate(event) {  // 🟢
         case " ":
             if (shop.in_view == "yes" && in_shop == false && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {
                 in_shop = true;
+                unconditional_counter = -1;
             }
             else if (in_shop == true) {
                 in_shop = false;
