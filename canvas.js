@@ -101,6 +101,7 @@ let end_col = 20;
 let shift_down = 24;
 
 let player = {
+    health: 300,
     x: 0,
     y: 0,
     inner_x: 9,
@@ -113,8 +114,33 @@ let player = {
     frameY: 1,
     xChange: 0,
     yChange: 0,
-    turned: false
+    turned: false,
+    shoot: false
 };
+let hearts = []
+for (let heart_number = 0; heart_number < 5; heart_number++) {
+    if (heart_number < 3) {  
+        let heart = {
+            width: 96,
+            height: 90,
+            frameX: 0,
+            beat: 0,
+            shown: true
+        }
+        hearts.push(heart);
+    }
+    else {  
+        let heart = {
+            width: 96,
+            height: 90,
+            frameX: 0,
+            beat: 0,
+            shown: false
+        }
+        hearts.push(heart);
+    }
+    
+}
 
 let shop = {
     x: 0,
@@ -131,15 +157,14 @@ let shop = {
 let enemies = ["skull"];
 let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-let enemy_amount = 0;
 let enemy_counter = 0;
 let ash_piles = [];
+let enemy_amount = 1;
 
 let moveLeft = false;
 let moveRight = false;
 let moveUp = false;
 let moveDown = false;
-let shoot = false;
 
 let in_shop = false;
 
@@ -165,7 +190,9 @@ let ShopInterior1 = new Image();
 let ShowroomImage = new Image();
 let Podium = new Image();
 
+let Heart_Image = new Image();
 let Fox_Image = new Image();
+
 
 let shop1_inventory = [];
 let shop2_inventory = [];
@@ -231,6 +258,7 @@ function init() {
         { "var": ShowroomImage, "url": "Assets/Tileset/black spotlight.png" },
         { "var": Podium, "url": "Assets/Tileset/Shop_Podium.png" },
 
+        { "var": Heart_Image, "url": "Assets/Player/hearts.png" },
         { "var": Fox_Image, "url": "Assets/Player/Fox Sprite Sheet.png"}
     ], draw);
 }
@@ -380,7 +408,7 @@ function draw() {
                 id : enemy_counter,
                 type : "skull",
                 image_name : enemyImage_skull,
-                x: canvas.width - ((canvas_width) * randint(0,1)),
+                x: canvas.width - ((canvas.width) * randint(0,1)),
                 y: randint(50, canvas.height - 50),
                 inner_x: 7,
                 inner_y: 12,
@@ -457,8 +485,8 @@ function draw() {
                               
                               90,
                               80,
-                              120,
-                              120);
+                              125,
+                              125);
         }
         if (unconditional_counter >= 50) {
             context.drawImage(Podium,
@@ -474,7 +502,30 @@ function draw() {
         }
     }
 
-
+    // Draw UI
+    for (let heart of hearts) {
+        if (heart.shown) {
+            context.drawImage(Heart_Image,
+                                            heart.width * heart.frameX,
+                                            0,
+                                            heart.width,
+                                            heart.height,
+                                            
+                                            (canvas.width - 120) + ((heart.width / 4) * hearts.indexOf(heart)),
+                                            2,                                            
+                                            (heart.width / 4) - heart.beat,
+                                            (heart.height / 4) - heart.beat)
+            }
+            if ((unconditional_counter - hearts.indexOf(heart)) % 25 == 0) {
+                heart.beat = 2;
+                if (heart.frameX == 1) {  // if half-heart, less of a heartbeat
+                    heart.beat = 1;
+                }
+            }
+            else {
+                heart.beat = 0;
+            }
+        }
 
     // Player Movement & Physics
 
@@ -488,7 +539,7 @@ function draw() {
     }
     // if idle
     if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
-        if (shoot == false) {
+        if (player.shoot == false) {
 
             if (player.frameY != 0 && player.frameY != 5) {
                 player.frameX = 0;  // running-sprite row has 8 columns whereas the idle-sprite row only has 5
@@ -610,12 +661,12 @@ function draw() {
         if (enemy.type == "skull") {
             // Hitting the edge of the canvas
             // left side
-            if (enemy.x + 24 < 0) {  // Hitting the left edge --- + 24 is used because player's body doesn't end until 24 pixels in
-                enemy.x = canvas.width - player.inner_x;  // Come back at the right edge
+            if (enemy.x + enemy.inner_x + enemy.inner_width < 0) {
+                enemy.x = canvas.width - enemy.inner_x;  // Come back at the right edge
             }
             // right side
-            if (enemy.x + 9 > canvas.width) { // Hitting the right edge --- similar here
-                enemy.x = -24;  // Come back at left edge
+            if (enemy.x > canvas.width) {
+                enemy.x = -(enemy.inner_x + enemy.inner_width);  // Come back at left edge
             }
             // top
             if (enemy.y + enemy.inner_y <= shift_down) {
@@ -653,8 +704,8 @@ function draw() {
     }
 
     // Shooting
-    if (shoot != false) {
-        if (shoot == "beam" && cooldown != "on") {
+    if (player.shoot != false) {
+        if (player.shoot == "beam" && cooldown != "on") {
             if (player.turned == false) {
                 player.frameY = 2;
             }
@@ -679,19 +730,19 @@ function draw() {
 
 
             if (player.frameX == 12) {
-                shoot = false;
+                player.shoot = false;
                 cooldown = "on";
                 player.frameX = 0;
             }
         }
 
-        else if (shoot == "wind_down") {
+        else if (player.shoot == "wind_down") {
             if (player.frameX > 0) {
                 player_counter -= 1
                 player.frameX -= 1;
             }
             else {
-                shoot = false;
+                player.shoot = false;
             }
         }
     }
@@ -741,21 +792,13 @@ function draw() {
         if (starting_row > 0) {
             starting_row -= 1;
         }
-        unconditional_counter += 1;
-        // if (unconditional_counter % 1 == 0) {
-            if (shift_down > 10) {
-            // starting_row -= 1;
+        
+        if (shift_down > 10) {
             shift_down -= 0.3;
             player.y += 1;
             shop.y += 2;
             shop.in_view = "yes"
-            }
-        // }
-        // if (shift_down < 49) {
-        //     // starting_row -= 1;
-        //     shift_down += 1;
-        //     player.y += 1;
-        // }
+        }
     }
 
     unconditional_counter += 1;
@@ -769,22 +812,22 @@ function activate(event) {  // 🟢
 
     switch (key) {
         case "ArrowLeft":
-            if (shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false) {
                 moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
-            if (shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false) {
                 moveRight = true;
             }
             break;
         case "ArrowUp":
-            if (shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false) {
                 moveUp = true;
             }
             break;
         case "ArrowDown":
-            if (shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false) {
                 moveDown = true;
             }
             break;
@@ -796,10 +839,10 @@ function activate(event) {  // 🟢
             else if (in_shop == true) {
                 in_shop = false;
             }
-            if (shoot == false && winner != true) {
+            if (player.shoot == false && winner != true) {
                 player.frameX = 0;
                 moveUp = moveRight = moveLeft = moveDown = false;
-                shoot = "beam";
+                player.shoot = "beam";
             }
     }
 }
@@ -822,9 +865,9 @@ function deactivate(event) { // 🔴
             moveDown = false;
             break;
         case " ":
-            if (shoot == "beam") {
+            if (player.shoot == "beam") {
                 player_counter = 10;
-                shoot = "wind_down";
+                player.shoot = "wind_down";
             }
     }
 }
