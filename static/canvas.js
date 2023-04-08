@@ -101,6 +101,7 @@ let end_col = 20;
 let shift_down = 24;
 
 let player = {
+    max_health: 300,
     health: 300,
     x: 0,
     y: 0,
@@ -115,32 +116,11 @@ let player = {
     xChange: 0,
     yChange: 0,
     turned: false,
-    shoot: false
+    shoot: false,
+    immune: false
 };
+
 let hearts = []
-for (let heart_number = 0; heart_number < 5; heart_number++) {
-    if (heart_number < 3) {  
-        let heart = {
-            width: 96,
-            height: 90,
-            frameX: 0,
-            beat: 0,
-            shown: true
-        }
-        hearts.push(heart);
-    }
-    else {  
-        let heart = {
-            width: 96,
-            height: 90,
-            frameX: 0,
-            beat: 0,
-            shown: false
-        }
-        hearts.push(heart);
-    }
-    
-}
 
 let shop = {
     x: 0,
@@ -171,13 +151,14 @@ let in_shop = false;
 let player_counter = 0;
 let collision_counter = 0;
 let unconditional_counter = 0;
+let noted_counter = 0;
 let cooldown = "off";
 
 let winner = false;
 
 let enable_collisions = true;
 
-
+// IMAGES
 let playerImage = new Image();
 
 let enemyImage_skull = new Image();
@@ -193,6 +174,11 @@ let Podium = new Image();
 let Heart_Image = new Image();
 let Fox_Image = new Image();
 
+
+
+// AUDIO
+let background_audio = new Audio();
+let player_hurt_audio = new Audio();
 
 let shop1_inventory = [];
 let shop2_inventory = [];
@@ -223,14 +209,6 @@ function init() {
     context = canvas.getContext("2d");
     context.imageSmoothingEnabled = false;
 
-    let background_audio = new Audio("static/Assets/Audio/" + background_song);
-    background_audio.currentTime = randint(0, 60);
-    background_audio.play();
-    background_audio.addEventListener('ended', () => {
-        background_audio.currentTime = 0;
-        background_audio.play();
-    });
-    console.log("Playing " + background_song);
 
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
@@ -249,18 +227,30 @@ function init() {
 
 
     load_assets([
-        { "var": playerImage, "url": "static/Assets/Player/player.png" },
-        { "var": enemyImage_skull, "url": "static/Assets/Enemies/fire-skull.png" },
-        { "var": AshImage, "url": "static/Assets/Enemies/Ash.png" },
-        { "var": BackgroundImage, "url": "static/Assets/Tileset/tiles.png" },
-        { "var": ShopImage1, "url": "static/Assets/Tileset/Shop1.png" },
-        { "var": ShopInterior1, "url": "static/Assets/Tileset/Shop1_BG.png" },
-        { "var": ShowroomImage, "url": "static/Assets/Tileset/black spotlight.png" },
-        { "var": Podium, "url": "static/Assets/Tileset/Shop_Podium.png" },
+        { "var": playerImage, "url": "/static/Assets/Player/player.png" },
+        { "var": enemyImage_skull, "url": "/static/Assets/Enemies/fire-skull.png" },
+        { "var": AshImage, "url": "/static/Assets/Enemies/Ash.png" },
+        { "var": BackgroundImage, "url": "/static/Assets/Tileset/tiles.png" },
+        { "var": ShopImage1, "url": "/static/Assets/Tileset/Shop1.png" },
+        { "var": ShopInterior1, "url": "/static/Assets/Tileset/Shop1_BG.png" },
+        { "var": ShowroomImage, "url": "/static/Assets/Tileset/black spotlight.png" },
+        { "var": Podium, "url": "/static/Assets/Tileset/Shop_Podium.png" },
 
-        { "var": Heart_Image, "url": "static/Assets/Player/hearts.png" },
-        { "var": Fox_Image, "url": "static/Assets/Player/Fox Sprite Sheet.png"}
+        { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
+        { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
+
+        { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
+        { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"}
     ], draw);
+
+    // Accompanying Developer Music
+    background_audio.currentTime = randint(0, 60);
+    background_audio.play();
+    background_audio.addEventListener('ended', () => {
+        background_audio.currentTime = 0;
+        background_audio.play();
+    });
+    console.log("Playing " + background_song);
 }
 
 
@@ -408,6 +398,9 @@ function draw() {
                 id : enemy_counter,
                 type : "skull",
                 image_name : enemyImage_skull,
+                health: 100,
+                damage: 50,
+
                 x: canvas.width - ((canvas.width) * randint(0,1)),
                 y: randint(50, canvas.height - 50),
                 inner_x: 7,
@@ -420,7 +413,8 @@ function draw() {
                 frameY: 0,
                 xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
                 yChange: 2 - (4 * randint(0, 1)),
-                counter : 0
+
+                counter: 0
             };
             active_enemies.push(enemy);
         }
@@ -502,22 +496,95 @@ function draw() {
         }
     }
 
+    // Create Hearts
+    if (hearts.length < player.max_health / 100) {
+        for (let heart_number = (hearts.length * 100); heart_number < player.max_health; heart_number += 100) {
+                let heart = {
+                    width: 56,
+                    height: 47,
+                    frameX: 0,
+                    beat: 0,
+                }
+                hearts.push(heart);
+            }
+        }
+        
+    let health_lost = (player.max_health - player.health)
+    switch (health_lost) {
+        case 50:
+            hearts[0].frameX = 1;
+            break;
+        case 100:
+            hearts[0].frameX = 2;
+            break;
+        case 150:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 1;
+            break;
+        case 200:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            break;
+        case 250:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            hearts[2].frameX = 1;
+            break;
+        case 300:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            hearts[2].frameX = 2;
+            break;
+        case 350:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            hearts[2].frameX = 2;
+            hearts[3].frameX = 1;
+            break;
+        case 400:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            hearts[2].frameX = 2;
+            hearts[3].frameX = 2;
+            break;
+        case 450:
+            hearts[0].frameX = 2;
+            hearts[1].frameX = 2;
+            hearts[2].frameX = 2;
+            hearts[3].frameX = 2;
+            hearts[4].frameX = 1;
+            break;
+        case 500:
+            hearts.forEach(function(heart) {
+                heart.frameX = 2;
+              });
+            break;
+        default:
+            hearts.forEach(function(heart) {
+                heart.frameX = 0;
+              });
+    }
+
     // Draw UI
     for (let heart of hearts) {
-        if (heart.shown) {
             context.drawImage(Heart_Image,
                                             heart.width * heart.frameX,
                                             0,
                                             heart.width,
                                             heart.height,
                                             
-                                            (canvas.width - 120) + ((heart.width / 4) * hearts.indexOf(heart)),
+                                            (canvas.width - (hearts.length * 25)) + ((heart.width / 2.2) * hearts.indexOf(heart)),
                                             2,                                            
-                                            (heart.width / 4) - heart.beat,
-                                            (heart.height / 4) - heart.beat)
-            }
-            if ((unconditional_counter - hearts.indexOf(heart)) % 25 == 0) {
+                                            (heart.width / 2.2) - heart.beat,
+                                            (heart.height / 2.2) - heart.beat)
+
+            if ((unconditional_counter - hearts.indexOf(heart)) % (25 - (3 * Math.floor(player.max_health / player.health))) == 0) {  // staggered heart-beat effect
                 heart.beat = 2;
+
+                if (heart.frameX == 2) {
+                    heart.beat = 0;
+                }
+            
                 if (heart.frameX == 1) {  // if half-heart, less of a heartbeat
                     heart.beat = 1;
                 }
@@ -527,18 +594,19 @@ function draw() {
             }
         }
 
+
     // Player Movement & Physics
 
     // Moving
-    if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft)) {
-        player.frameY = 1
+    if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft) && !player.immune) {
+        player.frameY = 1;
         if (player.turned) {
             player.frameY = 6;
         }
         player.frameX = (player.frameX + 1) % 8;
     }
-    // if idle
-    if (!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) {
+    // Idle
+    if ((!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) && player.immune == false && player.health != 0) {
         if (player.shoot == false) {
 
             if (player.frameY != 0 && player.frameY != 5) {
@@ -563,6 +631,30 @@ function draw() {
         player.xChange = player.xChange * 0.8; // Friction increased when stopped
         player.yChange = player.yChange * 0.8;
     }
+    // Dead
+    if (player.health == 0) {
+        player.frameY = 4;
+        if (player.turned) {
+            player.frameY = 9;
+        }
+        if (player.frameX < 4 && unconditional_counter % 6 == 0) {
+            player.frameX += 1;
+        }
+        if (unconditional_counter % 45 == 0) {
+            player.frameX = 0;
+        }
+    }
+    // Attacked
+    else if (player.immune) {
+        player.frameY = 3;
+        if (player.turned) {
+            player.frameY = 8;
+        }
+        player.frameX = (player.frameX + 1) % 2;
+    }
+
+    
+
 
     player.x += player.xChange;
     player.y += player.yChange;
@@ -747,6 +839,28 @@ function draw() {
         }
     }
 
+    // Enemy attacks Player
+    if (player.immune == false) {
+        for (let enemy of active_enemies) {
+            // if in range
+            if ((((player.x + player.inner_x < enemy.x + enemy.width) && ( player.x + player.inner_x > enemy.x + enemy.inner_x)) || ((player.x + player.inner_x + player.inner_width > enemy.x) && (player.x + player.inner_x < enemy.x + enemy.inner_x))) && (((player.y + player.inner_y > enemy.y) && (player.y + player.inner_y < enemy.y + enemy.inner_y + enemy.inner_height)) || ((player.y + player.inner_y + player.inner_height > enemy.y + enemy.inner_y) && (player.y + player.inner_y + player.inner_height < enemy.y + enemy.height)))) {
+                    noted_counter = unconditional_counter;
+                    player.immune = true;
+                    player.frameX = 0;
+                    if (player.health > 0) {
+                        player_hurt_audio.play();
+                        player.health -= enemy.damage;
+                        if (player.health == 0) {
+                            death();
+                        }
+                    }
+                    console.log("An enemy hit you! Player health is now " + player.health)
+            }
+        }
+    }
+    if (unconditional_counter == noted_counter + 30) {
+        player.immune = false;
+    }
     
     //COLLIDING WITH OTHER ENEMY
     for (let target_enemy of active_enemies) {
@@ -764,31 +878,10 @@ function draw() {
     }
 
 
-    function collides(e1, e2) {
-        disableCollisions();
-        if (((e1.x + e1.inner_width) < e2.x) || ((e2.x + e2.inner_width) < e1.x) || (e1.y > (e2.y + e2.height)) || (e2.y > (e1.y + e1.height))) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
-    function enableCollisions() {
-        enable_collisions = true;
-    }
-    function disableCollisions() {
-        enable_collisions = false;
-
-        // Wait for some time before enabling collisions again
-        collision_counter += 1;
-        if (collision_counter == 50) {
-            collision_counter = 0;
-            enableCollisions();
-        }
-    }
 
     if (winner) {
+        player.health = player.max_health;
+
         if (starting_row > 0) {
             starting_row -= 1;
         }
@@ -812,22 +905,22 @@ function activate(event) {  // 🟢
 
     switch (key) {
         case "ArrowLeft":
-            if (player.shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
                 moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
-            if (player.shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
                 moveRight = true;
             }
             break;
         case "ArrowUp":
-            if (player.shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
                 moveUp = true;
             }
             break;
         case "ArrowDown":
-            if (player.shoot != "beam" && in_shop == false) {
+            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
                 moveDown = true;
             }
             break;
@@ -839,7 +932,7 @@ function activate(event) {  // 🟢
             else if (in_shop == true) {
                 in_shop = false;
             }
-            if (player.shoot == false && winner != true) {
+            if (player.shoot == false && winner != true && player.health != 0) {
                 player.frameX = 0;
                 moveUp = moveRight = moveLeft = moveDown = false;
                 player.shoot = "beam";
@@ -895,6 +988,32 @@ function turn(position, state) {
     }
 }
 
+
+function collides(e1, e2) {
+    disableCollisions();
+    if (((e1.x + e1.inner_width) < e2.x) || ((e2.x + e2.inner_width) < e1.x) || (e1.y > (e2.y + e2.height)) || (e2.y > (e1.y + e1.height))) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+function enableCollisions() {
+    enable_collisions = true;
+}
+function disableCollisions() {
+    enable_collisions = false;
+
+    // Wait for some time before enabling collisions again
+    collision_counter += 1;
+    if (collision_counter == 50) {
+        collision_counter = 0;
+        enableCollisions();
+    }
+}
+
+// Player hits Enemy
 function enemy_hit() {
     for (let enemy of active_enemies) {
         if (player.turned == false) {
@@ -1047,11 +1166,15 @@ function enemy_hit() {
     }
 }
 
+// Player Dies
+function death() {
+    moveLeft = moveRight = moveUp = moveDown = false;
+}
+
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run
     let number_of_assets = assets.length;
     let loaded = function () {
-        console.log("Loaded 😊");
         number_of_assets -= 1;
         if (number_of_assets === 0) {
             callback_function();  // Note that this does not call the function titled 'callback_function' but instead, the string name of a function is inserted here and the result is called

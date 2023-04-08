@@ -4,15 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Game</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" />
-    <link rel="icon" href="{{url_for('static', filename='/Assets/Player/Favicon.png')}}" />
+    <!-- <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" /> -->
+    <link rel="stylesheet" href="/static/styles.css" />
+    <!-- <link rel="icon" href="{{url_for('static', filename='/Assets/Player/Favicon.png')}}" /> -->
+    <link rel="icon" href="/static/Assets/Player/Favicon.png" />
 </head>
 
 
 <body>
     <canvas id="inner"></canvas>
     
-    <script type="module" src="{{url_for('static', filename='canvas.js')}}"></script>
+    <!-- <script type="module" src="{{url_for('static', filename='canvas.js')}}"></script> -->
+    <script type="module" src="/static/canvas.js"></script>
 
 </body>
 
