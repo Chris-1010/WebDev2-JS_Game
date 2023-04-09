@@ -20,57 +20,31 @@ const songs = [
     "Chan Chan.mp3",
     "Classical.mp3",
     "Del Rio Bravo.mp3",
-    "Feel Good Inc. Bass & Guitar Deep.mp3",
-    "Feel Good Inc. Bass & Guitar.mp3",
-    "Feel Good Inc. Guitar.mp3",
-    "Feel Good Inc..mp3",
     "Follow Your Face.mp3",
     "Happy Happy Game Show.mp3",
-    "Hocus Pocus Yodelling.mp3",
-    "Jump Up Superstar Music Box.mp3",
-    "Jump Up Superstar Slowed Music Box.mp3",
     "K.K. Cruisin'.mp3",
-    "Koopa's Theme Flute.mp3",
-    "Life Could Be a Dream Instrumental.mp3",
-    "Life Could Be a Dream.mp3",
     "Mike Nesmith - Tapioca Tundra.mp3",
     "Modern Jazz Samba.mp3",
-    "Morning Flower (Reggae Version).mp3",
     "Mount Lineland.mp3",
-    "My Bubblegum.mp3",
     "Oswald's Theme.mp3",
-    "Powerful Mario.mp3",
     "Raving_Rabbids_OST.mp3",
-    "Raving_Rabbids_OST_1.mp3",
-    "Raving_Rabbids_OST_2.mp3",
-    "Sesame Street (Instrumental) Ringtone.mp3",
-    "She Took the Kids Ending.mp3",
     "Spaz Bridge.mp3",
-    "Star vs. the Forces of Evil - Buff Frog's Theme.mp3",
     "Tango de Manzana.mp3",
     "The Walk.mp3",
     "Theme from Up.mp3",
-    "Tiki Land.mp3",
     "Verano Sensual.mp3",
     "Washing Machine Whistling.mp3",
-    "Wii Party Suggestions Music.mp3",
-    "3DS Mii Maker.mp3",
     "59 Seconds Theme.mp3",
     "Doors OST Curious Light.mp3",
     "Doors OST Elevator Jammed.mp3",
-    "Ending Theme - Super Mario World.mp3",
     "Flipsville Galaxy.mp3",
     "Cosmic Cove.mp3",
-    "GTA 5- its a setup (ending song).mp3",
-    "GTA IV Loading Screen Theme Song.mp3",
     "Honeybloom Galaxy.mp3",
-    "Labour (Human Fall Flat).mp3",
-    "Mario Paint theme.mp3",
     "Maro Malt (Malo Mart J-House Remix).mp3",
     "Mii plaza 3ds theme remix (NOTEBLOCK).mp3",
     "Sleepwalk by Santo and Johnny (Slowed Down).mp3",
     "Sonic Mania OST - Rogues Gallery for Mirage Saloon Zone Act 2 Remix.mp3",
-    "Starshine Beach Galaxy (Underwater).mp3",
+    "Starshine Beach Galaxy (Underwater).mp3"
 ];
 let background_song = songs[randint(0, songs.length - 1)];
 
@@ -117,6 +91,8 @@ let player = {
     yChange: 0,
     turned: false,
     shoot: false,
+    weapon: "beam",
+    damage: 7,
     immune: false
 };
 
@@ -139,7 +115,7 @@ let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
 let enemy_counter = 0;
 let ash_piles = [];
-let enemy_amount = 1;
+let enemy_amount = 10;
 
 let moveLeft = false;
 let moveRight = false;
@@ -179,6 +155,9 @@ let Fox_Image = new Image();
 // AUDIO
 let background_audio = new Audio();
 let player_hurt_audio = new Audio();
+// let power_down_audio = new Audio();
+let firing_beam_audio = new Audio();
+let hitmarker_audio = new Audio();
 
 let shop1_inventory = [];
 let shop2_inventory = [];
@@ -239,8 +218,11 @@ function init() {
         { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
         { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
 
-        { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
-        { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"}
+        // { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
+        { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
+        // { "var": power_down_audio, "url": "/static/Assets/Audio/SFX/Power_Down.mp3"},
+        { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
+        { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"}
     ], draw);
 
     // Accompanying Developer Music
@@ -573,7 +555,7 @@ function draw() {
                                             heart.width,
                                             heart.height,
                                             
-                                            (canvas.width - (hearts.length * 25)) + ((heart.width / 2.2) * hearts.indexOf(heart)),
+                                            (canvas.width - (hearts.length * 26)) + ((heart.width / 2.2) * hearts.indexOf(heart)),
                                             2,                                            
                                             (heart.width / 2.2) - heart.beat,
                                             (heart.height / 2.2) - heart.beat)
@@ -623,7 +605,7 @@ function draw() {
 
             
             player_counter += 1;
-            if (player_counter % 3 == 0) {
+            if (player_counter % (5 - (Math.floor(player.max_health / player.health))) == 0) {
             player.frameX = (player.frameX + 1) % 5;
             }
         }
@@ -796,39 +778,41 @@ function draw() {
     }
 
     // Shooting
-    if (player.shoot != false) {
-        if (player.shoot == "beam" && cooldown != "on") {
-            if (player.turned == false) {
-                player.frameY = 2;
-            }
-            else if (player.turned) {
-                player.frameY = 7;
-            }
+    if (player.shoot == true) {
+        if (player.weapon == "beam") {
+                if (player.turned == false) {
+                    player.frameY = 2;
+                }
+                else if (player.turned) {
+                    player.frameY = 7;
+                }
 
-            if (player.frameX < 6) {
-                player_counter += 1;
-                if (player_counter == 1 || player_counter % 4 == 0) {
-                    player.frameX += 1;
+                if (player.frameX < 6) {
+                    player_counter += 1;
+                    if (player_counter == 1 || player_counter % 4 == 0) {
+                        player.frameX += 1;
+                    }
+                }
+                else if (player.frameX == 6) { // Alternate between instances of firing
+                    if (firing_beam_audio.paused) {
+                        firing_beam_audio.play();
+                    }
+                    player.frameX = 7;
+                    enemy_hit();
+                }
+                else if (player.frameX == 7) { // Alternate between instances of firing
+                    player.frameX = 6;
+                    enemy_hit();
+                }
+
+
+                if (player.frameX == 12) {
+                    player.shoot = false;
+                    player.frameX = 0;
                 }
             }
-            else if (player.frameX == 6) {
-                player.frameX = 7;
-                enemy_hit();
-            }
-            else if (player.frameX == 7) {
-                player.frameX = 6;
-                enemy_hit();
-            }
-
-
-            if (player.frameX == 12) {
-                player.shoot = false;
-                cooldown = "on";
-                player.frameX = 0;
-            }
         }
-
-        else if (player.shoot == "wind_down") {
+        else if (player.shoot == "wind_down" ) { // Winding down of energy "beam" weapon
             if (player.frameX > 0) {
                 player_counter -= 1
                 player.frameX -= 1;
@@ -837,7 +821,6 @@ function draw() {
                 player.shoot = false;
             }
         }
-    }
 
     // Enemy attacks Player
     if (player.immune == false) {
@@ -905,37 +888,37 @@ function activate(event) {  // 🟢
 
     switch (key) {
         case "ArrowLeft":
-            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && player.health != 0) {
                 moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "ArrowRight":
-            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && player.health != 0) {
                 moveRight = true;
             }
             break;
         case "ArrowUp":
-            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && player.health != 0) {
                 moveUp = true;
             }
             break;
         case "ArrowDown":
-            if (player.shoot != "beam" && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && player.health != 0) {
                 moveDown = true;
             }
             break;
         case " ":
-            if (shop.in_view == "yes" && in_shop == false && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {
+            if (shop.in_view == "yes" && in_shop == false && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {  // Enter Shop
                 in_shop = true;
-                unconditional_counter = -1;
+                unconditional_counter = -1; // To create a staggered presentation of items on sale in shop
             }
-            else if (in_shop == true) {
+            else if (in_shop == true) { // Exit shop
                 in_shop = false;
             }
-            if (player.shoot == false && winner != true && player.health != 0) {
+            if (player.shoot == false && winner != true && player.health != 0) { // Shoot
                 player.frameX = 0;
                 moveUp = moveRight = moveLeft = moveDown = false;
-                player.shoot = "beam";
+                player.shoot = true;
             }
     }
 }
@@ -958,9 +941,16 @@ function deactivate(event) { // 🔴
             moveDown = false;
             break;
         case " ":
-            if (player.shoot == "beam") {
-                player_counter = 10;
-                player.shoot = "wind_down";
+            player.shoot = false;
+            if (player.weapon == "beam") {
+                
+                firing_beam_audio.currentTime = 3.5
+                if (!winner && !(player.health < 0)) {
+                    // power_down_audio.play();
+                
+                    player_counter = 10;
+                    player.shoot = "wind_down"; // Power down energy weapon
+                }
             }
     }
 }
@@ -1063,24 +1053,28 @@ function enemy_hit() {
                 //) {}
             if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + player.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
                 console.log("DIRECT HIT!");
-                let index = active_enemies.indexOf(enemy);
-                active_enemies.splice(index, 1);
-                enemy_amount -= 1;
-                if (player.x + player.inner_x + player.inner_width < enemy.x && enemy.xChange < 0) {
-                    console.log("Changing xChange of enemy. Their xChange was " + enemy.xChange)
-                    enemy.xChange = enemy.xChange * -1;
-                    console.log("is now " + enemy.xChange)
+                hitmarker_audio.play();
+                enemy.health -= player.damage;
+                if (enemy.health <= 0) {
+                    let index = active_enemies.indexOf(enemy);
+                    active_enemies.splice(index, 1);
+                    enemy_amount -= 1;
+                    if (player.x + player.inner_x + player.inner_width < enemy.x && enemy.xChange < 0) {
+                        console.log("Changing xChange of enemy. Their xChange was " + enemy.xChange)
+                        enemy.xChange = enemy.xChange * -1;
+                        console.log("is now " + enemy.xChange)
+                    }
+                    else if (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x && enemy.xChange < 0) {
+                        enemy.xChange = -enemy.xChange;
+                    }
+                    enemy.y += enemy.height / 2;
+                    enemy.xChange = enemy.xChange * 5;
+                    enemy.yChange = -3;
+                    enemy.width = 30;
+                    enemy.height = 13;
+                    enemy.inner_height = 13 + randint(-5,5)
+                    ash_piles.push(enemy);
                 }
-                else if (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x && enemy.xChange < 0) {
-                    enemy.xChange = -enemy.xChange;
-                }
-                enemy.y += enemy.height / 2;
-                enemy.xChange = enemy.xChange * 5;
-                enemy.yChange = -3;
-                enemy.width = 30;
-                enemy.height = 13;
-                enemy.inner_height = 13 + randint(-5,5)
-                ash_piles.push(enemy);
             }
         }
         else if (player.turned) {
@@ -1144,6 +1138,7 @@ function enemy_hit() {
                 //if   (left of enemy's body > the far left of player's box(beam) and right of enemy's body < start of beam                            and              top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
                 //if enemy's body is between the x-plane area where the player's beam starts and ends                                                  and              y-plane area
                 console.log("DIRECT HIT!");
+                hitmarker_audio.play();
                 let index = active_enemies.indexOf(enemy);
                 active_enemies.splice(index, 1);
                 enemy_amount -= 1;
