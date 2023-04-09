@@ -59,20 +59,6 @@ const songs = [
     "Doors OST Curious Light.mp3",
     "Doors OST Elevator Jammed.mp3",
     "Ending Theme - Super Mario World.mp3",
-    "Flipsville Galaxy.mp3",
-    "Cosmic Cove.mp3",
-    "GTA 5- its a setup (ending song).mp3",
-    "GTA IV Loading Screen Theme Song.mp3",
-    "Honeybloom Galaxy.mp3",
-    "Labour (Human Fall Flat).mp3",
-    "Mario Paint theme.mp3",
-    "Maro Malt (Malo Mart J-House Remix).mp3",
-    "Mii plaza 3ds theme remix (NOTEBLOCK).mp3",
-    "Sleepwalk by Santo and Johnny (Slowed Down).mp3",
-    "Sonic Mania OST - Rogues Gallery for Mirage Saloon Zone Act 2 Remix.mp3",
-    "Starshine Beach Galaxy (Underwater).mp3",
-];
-let background_song = songs[randint(0, songs.length - 1)];
 
 let terrain_background = [
     [71,72,71,71,59,85,85,84,84,59,58,72,71,59,72,85,71,72,71,84],
