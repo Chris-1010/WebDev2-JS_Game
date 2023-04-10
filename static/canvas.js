@@ -120,7 +120,7 @@ let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
 let enemy_counter = 0;
 let ash_piles = [];
-let enemy_amount = 2;
+let enemy_amount = 0;
 
 let moveLeft = false;
 let moveRight = false;
@@ -302,7 +302,7 @@ function init() {
 
 function draw() {
     game_animation = window.requestAnimationFrame(draw);
-
+    
     fpsInterval = 50;
     let now = Date.now();
     let elapsed = now - then;
