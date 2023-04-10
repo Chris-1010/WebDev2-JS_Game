@@ -91,12 +91,17 @@ let player = {
     yChange: 0,
     turned: false,
     shoot: false,
-    weapon: "beam",
-    damage: 7,
+    weapon: "pellet",
+    damage: 10,
     immune: false
 };
 
-let hearts = []
+// Weapons
+// Pellet
+let pellet;
+let pellets = [];
+
+let hearts = [];
 
 let shop = {
     x: 0,
@@ -115,7 +120,7 @@ let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
 let enemy_counter = 0;
 let ash_piles = [];
-let enemy_amount = 10;
+let enemy_amount = 2;
 
 let moveLeft = false;
 let moveRight = false;
@@ -149,6 +154,7 @@ let Podium = new Image();
 
 let Heart_Image = new Image();
 let Fox_Image = new Image();
+let Beam_Weapon_Image = new Image();
 
 
 
@@ -175,10 +181,55 @@ let fox = {
     inner_width: 19,
     inner_height: 15,
     frameX: 0,
-    frameY: 0
+    frameY: 0,
+    shop_x: 0,
+    shop_y: 0,
+    shop_width: 64,
+    shop_height: 64,
+
+    cost: 1000,
+    description: "A friendly fox to keep you company on your adventure. It pounces at enemies when close, dealing a small amount of damage."
 }
 
-let items = [fox];
+let beam_weapon = {
+    name: "Beam",
+    image: Beam_Weapon_Image,
+    width: 64,
+    height: 64,
+    inner_x: 24,
+    inner_y: 33,
+    inner_width: 64,
+    inner_height: 52,
+    frameX: 0,
+    frameY: 0,
+    shop_x: 0,
+    shop_y: 0,
+    shop_width: 64,
+    shop_height: 64,
+
+    cost: 250,
+    description: "An energy blaster that emits a devastating beam of energy to enemies. Must be charged up before firing."
+}
+
+let extra_heart = {
+    name: "Extra Heart",
+    image: Heart_Image,
+    width: 56,
+    height: 47,
+    inner_x: 3,
+    inner_y: 0,
+    inner_width: 50,
+    inner_height: 47,
+    frameX: 0,
+    frameY: 0,
+    shop_x: 12,
+    shop_y: 25,
+    shop_width: 45,
+    shop_height: 35
+}
+
+let items = [fox, beam_weapon, extra_heart];
+let available_items = [fox, beam_weapon, extra_heart];
 
 
 document.addEventListener("DOMContentLoaded", init, false)
@@ -186,19 +237,24 @@ document.addEventListener("DOMContentLoaded", init, false)
 function init() {
     canvas = document.getElementById("inner");
     context = canvas.getContext("2d");
-    context.imageSmoothingEnabled = false;
+    context.imageSmoothingEnabled = false; // Stops the sprite image from becoming blurry when idle
 
-
+    // Initial Player Positioning
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
-    shop.x = canvas.width / 2 - shop.inner_width;
-    shop.y = -shop.height;
+
+    // Initial Shop Positioning
+    shop.x = canvas.width / 2 - shop.inner_width; // Centered
+    shop.y = -shop.height; // Just above the canvas, out of sight
 
 
-    for (let times = 0; times < 1; ++times) {
-        shop1_inventory.push(items[randint(0, items.length - 1)])
+    for (let times = 0; times < 3; ++times) { // 3 items per shop
+        let chosen_item = available_items[randint(0, available_items.length - 1)]; // Pick random item
+        shop1_inventory.push(chosen_item); // add to shop's inventory
+        let index = available_items.indexOf(chosen_item); // find the index of this item in available_items list
+        available_items.splice(index, 1); // remove this item from the choice pool to prevent the same item from being offered twice
     }
-    console.log("Shop 1's Inventory: " + shop1_inventory[0].name)
+    console.log("Shop 1's Inventory: " + shop1_inventory[0].name + ", " + shop1_inventory[1].name + ", " + shop1_inventory[2].name)
 
 
     window.addEventListener("keydown", activate, false)
@@ -217,10 +273,10 @@ function init() {
 
         { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
         { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
+        { "var": Beam_Weapon_Image, "url": "/static/Assets/Player/Energy Beam Weapon.png"},
 
         // { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
         { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
-        // { "var": power_down_audio, "url": "/static/Assets/Audio/SFX/Power_Down.mp3"},
         { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
         { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"}
     ], draw);
@@ -259,52 +315,6 @@ function draw() {
     // Clear Canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Background Sequentially
-    // if (row_counter < terrain_background.length) {
-    //         for (let r = 0; r < row_counter; r += 1) {
-    //             if (finished_tile == true) {
-    //                 break;
-    //             }
-    //             else {
-    //                 for (let c = 0; c >= 0; c += 1) {
-    //                     if (c < col_counter) {
-    //                         if (c > terrain_background[0].length) {
-    //                             row_counter += 1;
-    //                             col_counter = 2;
-    //                             break;
-    //                         }
-    //                         else {
-    //                         let tile = terrain_background[r][c];
-    //                         if (tile >= 0) {
-    //                             let tileRow = Math.floor(tile / tilesPerRow);
-    //                             let tileCol = Math.floor(tile % tilesPerRow);
-    //                             context.drawImage(BackgroundImage,
-    //                                 tileCol * tileSize,
-    //                                 tileRow * tileSize,
-    //                                 tileSize,
-    //                                 tileSize,
-                
-    //                                 c * (tileSize / 3.4),
-    //                                 r * (tileSize / 3.4),
-    //                                 tileSize / 3.4,
-    //                                 tileSize / 3.4);
-                                
-    //                             }
-    //                         }
-    //                     }
-    //                     else {
-    //                         if (r > row_counter) {
-    //                             finished_tile = true;
-    //                         }
-    //                         break;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     finished_tile = false;
-    //     col_counter += 1;
-
     // Draw background on canvas
     for (let r = starting_row; r < end_row; r += 1) {
         for (let c = 0; c < end_col; c += 1) {
@@ -340,7 +350,7 @@ function draw() {
         }
     }
 
-    // Draw shop
+    // Draw shop building
     context.drawImage(ShopImage1,
         shop.width * shop.frameX,
         0,
@@ -370,6 +380,14 @@ function draw() {
 
         player.x, player.y, player.width, player.height
     );
+
+    // Draw Weapon's Bullets/Particles
+    if (player.weapon == "pellet") {
+        context.fillStyle = "yellow";
+        for (let pellet of pellets) {
+            context.fillRect(pellet.x, pellet.y, pellet.width, pellet.height)
+        }
+    }
 
 
     // Create Enemies
@@ -424,10 +442,10 @@ function draw() {
     }
 
 
-    // Draw Interior of shop
+    // Draw Interior of shop + items
     if (in_shop == true) {
         context.drawImage(ShowroomImage, 0, 0, canvas.width, canvas.height)
-        if (unconditional_counter > 70) {
+        if (unconditional_counter > 70) {  // Comes first so that background of shop is in the background, not in front of the items
             context.drawImage(ShopInterior1, 0, 0, canvas.width, canvas.height)
         }
         if (unconditional_counter >= 10) {
@@ -437,20 +455,22 @@ function draw() {
                               500,
                               500,
                               
-                              10,
+                              8,
                               80,
                               120,
-                              120);
+                              120
+                              );
             context.drawImage(shop1_inventory[0].image,
                               shop1_inventory[0].width * shop1_inventory[0].frameX,
                               shop1_inventory[0].height * shop1_inventory[0].frameY,
                               shop1_inventory[0].width,
                               shop1_inventory[0].height,
                               
-                              35,
-                              35,
-                              shop1_inventory[0].width * 2,
-                              shop1_inventory[0].height * 2)
+                              shop1_inventory[0].shop_x + 35,
+                              shop1_inventory[0].shop_y + 35,
+                              shop1_inventory[0].shop_width,
+                              shop1_inventory[0].shop_height
+                              );
         }
         if (unconditional_counter >= 30) {
             context.drawImage(Podium,
@@ -462,7 +482,19 @@ function draw() {
                               90,
                               80,
                               125,
-                              125);
+                              125
+                              );
+            context.drawImage(shop1_inventory[1].image,
+                              shop1_inventory[1].width * shop1_inventory[1].frameX,
+                              shop1_inventory[1].height * shop1_inventory[1].frameY,
+                              shop1_inventory[1].width,
+                              shop1_inventory[1].height,
+                              
+                              shop1_inventory[1].shop_x + 120,
+                              shop1_inventory[1].shop_y + 36,
+                              shop1_inventory[1].shop_width,
+                              shop1_inventory[1].shop_height
+                              );
         }
         if (unconditional_counter >= 50) {
             context.drawImage(Podium,
@@ -471,10 +503,21 @@ function draw() {
                               500,
                               500,
                               
-                              170,
+                              175,
                               80,
                               120,
                               120);
+            context.drawImage(shop1_inventory[2].image,
+                              shop1_inventory[2].width * shop1_inventory[2].frameX,
+                              shop1_inventory[2].height * shop1_inventory[2].frameY,
+                              shop1_inventory[2].width,
+                              shop1_inventory[2].height,
+                              
+                              shop1_inventory[2].shop_x + 200,
+                              shop1_inventory[2].shop_y + 35,
+                              shop1_inventory[2].shop_width,
+                              shop1_inventory[2].shop_height
+                              );                
         }
     }
 
@@ -490,7 +533,6 @@ function draw() {
                 hearts.push(heart);
             }
         }
-        
     let health_lost = (player.max_health - player.health)
     switch (health_lost) {
         case 50:
@@ -578,7 +620,6 @@ function draw() {
 
 
     // Player Movement & Physics
-
     // Moving
     if ((moveLeft || moveRight || moveUp || moveDown) && !(moveRight && moveLeft) && !player.immune) {
         player.frameY = 1;
@@ -589,7 +630,7 @@ function draw() {
     }
     // Idle
     if ((!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) && player.immune == false && player.health != 0) {
-        if (player.shoot == false) {
+        if (player.weapon != "beam" || player.shoot == false) {
 
             if (player.frameY != 0 && player.frameY != 5) {
                 player.frameX = 0;  // running-sprite row has 8 columns whereas the idle-sprite row only has 5
@@ -600,9 +641,6 @@ function draw() {
                     player.frameY = 0;
                 }
             }
-            
-
-
             
             player_counter += 1;
             if (player_counter % (5 - (Math.floor(player.max_health / player.health))) == 0) {
@@ -634,10 +672,6 @@ function draw() {
         }
         player.frameX = (player.frameX + 1) % 2;
     }
-
-    
-
-
     player.x += player.xChange;
     player.y += player.yChange;
 
@@ -645,6 +679,27 @@ function draw() {
     player.yChange = player.yChange * 0.95;
 
 
+    // Weapon Particle Movement
+    if (player.weapon == "pellet") {
+        for (let pellet of pellets) {
+            pellet.x += pellet.xChange;
+            for (let enemy of active_enemies) {
+                if (
+                    ((!player.turned && 
+                    ((pellet.x + pellet.width > enemy.x + enemy.inner_x) && (pellet.x < enemy.x + enemy.inner_x + enemy.inner_width))
+                    )
+                    || (player.turned &&
+                    ((pellet.x < enemy.x + enemy.inner_x + enemy.inner_width) && (pellet.x + pellet.width > enemy.x + enemy.inner_x))
+                    ))
+                    && ((pellet.y + pellet.height > enemy.y + enemy.inner_y) && (pellet.y < enemy.y + enemy.inner_y + enemy.inner_height))
+                    ) {
+                    let index = pellets.indexOf(pellet);
+                    pellets.splice(index, 1);
+                    enemy_hit(enemy);
+                }
+            }
+        }
+    }
 
     // Enemy Movement
     for (let enemy of active_enemies) {
@@ -695,11 +750,26 @@ function draw() {
         shop.frameX = (shop.frameX + 1) % 6;
     }
 
-    // Item Animations
+    // Shop Item Animations
     if (shop1_inventory.includes(fox)) {
         shop1_inventory[shop1_inventory.indexOf(fox)].frameY = 5;
-        if (unconditional_counter % 9 == 0 || unconditional_counter % 11 == 0)
+        if (unconditional_counter % 15 == 0 || unconditional_counter % 20 == 0)
         shop1_inventory[shop1_inventory.indexOf(fox)].frameX = (shop1_inventory[shop1_inventory.indexOf(fox)].frameX + 1) % 5;
+    }
+    if (shop1_inventory.includes(extra_heart)) {
+        if ((unconditional_counter - (3 * hearts.indexOf(extra_heart))) % 25 == 0) {
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_x += 2;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_y += 2;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_width -= 2;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_height -= 2;
+        }
+        else {
+            
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_x = 12;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_y = 25;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_width = 45;
+            shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_height = 35;
+        }
     }
 
 
@@ -778,7 +848,10 @@ function draw() {
     }
 
     // Shooting
-    if (player.shoot == true) {
+    if (player.shoot == true) { // if player is currently shooting, mainly used for SFX
+        if (player.weapon == "pellet") {
+
+        }
         if (player.weapon == "beam") {
                 if (player.turned == false) {
                     player.frameY = 2;
@@ -798,11 +871,28 @@ function draw() {
                         firing_beam_audio.play();
                     }
                     player.frameX = 7;
-                    enemy_hit();
+                    for (let enemy of active_enemies) {
+                        if (
+                            ((!player.turned && 
+                            ((enemy.x + enemy.inner_x > player.x + player.inner_x + player.inner_width) && (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.width))
+                            )
+                            || (player.turned && 
+                            ((enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x) && (enemy.x + enemy.inner_x + enemy.inner_width > player.x))
+                            ))
+                            && (((enemy.y + enemy.inner_y > player.y) && (enemy.y + enemy.inner_y < player.y + player.height)) || ((enemy.y + enemy.inner_y + player.inner_height > player.y + player.inner_y) && (enemy.y + enemy.inner_y + enemy.height < player.y + player.height)) || ((enemy.y + enemy.inner_y < player.y) && (enemy.y + enemy.inner_y + enemy.height > player.y + player.height))
+                            )
+                            ) {
+                            enemy_hit(enemy);
+                        }
+                    }
                 }
                 else if (player.frameX == 7) { // Alternate between instances of firing
                     player.frameX = 6;
-                    enemy_hit();
+                    for (let enemy of active_enemies) {
+                        if ((!player.turned && (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + player.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height)))))) || (player.turned && ((((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)) && ((enemy.x + enemy.inner_x + enemy.inner_width) > player.x)) && ((((enemy.y + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + enemy.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || (((enemy.y + enemy.inner_y) < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))))) {
+                            enemy_hit(enemy);
+                        }
+                    }
                 }
 
 
@@ -811,16 +901,16 @@ function draw() {
                     player.frameX = 0;
                 }
             }
+    }
+    else if (player.shoot == "wind_down" ) { // Winding down of energy "beam" weapon
+        if (player.frameX > 0) {
+            player_counter -= 1
+            player.frameX -= 1;
         }
-        else if (player.shoot == "wind_down" ) { // Winding down of energy "beam" weapon
-            if (player.frameX > 0) {
-                player_counter -= 1
-                player.frameX -= 1;
-            }
-            else {
-                player.shoot = false;
-            }
+        else {
+            player.shoot = false;
         }
+    };
 
     // Enemy attacks Player
     if (player.immune == false) {
@@ -887,23 +977,27 @@ function activate(event) {  // 🟢
     let key = event.key;
 
     switch (key) {
+        case "a":
         case "ArrowLeft":
-            if (player.shoot == false && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && !(player.health <= 0)) {
                 moveLeft = true;
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
+        case "d":
         case "ArrowRight":
-            if (player.shoot == false && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && !(player.health <= 0)) {
                 moveRight = true;
             }
             break;
+        case "w":
         case "ArrowUp":
-            if (player.shoot == false && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && !(player.health <= 0)) {
                 moveUp = true;
             }
             break;
+        case "s":
         case "ArrowDown":
-            if (player.shoot == false && in_shop == false && player.health != 0) {
+            if (player.shoot == false && in_shop == false && !(player.health <= 0)) {
                 moveDown = true;
             }
             break;
@@ -915,9 +1009,27 @@ function activate(event) {  // 🟢
             else if (in_shop == true) { // Exit shop
                 in_shop = false;
             }
-            if (player.shoot == false && winner != true && player.health != 0) { // Shoot
-                player.frameX = 0;
-                moveUp = moveRight = moveLeft = moveDown = false;
+            if (player.shoot == false && winner != true && !(player.health <= 0)) { // Shoot
+                if (player.weapon == "beam") {
+                    firing_beam_audio.currentTime = 0;
+                    player.frameX = 0;
+                    moveUp = moveRight = moveLeft = moveDown = false;
+                }
+                if (player.weapon == "pellet") {
+                    // Fire (create) new pellet
+                    pellet = {
+                        x: player.x + player.inner_x + player.inner_width - 2,
+                        y: player.y + player.inner_y + player.inner_height / 2,
+                        width: 2,
+                        height: 2,
+                        xChange: 5
+                    }
+                    if (player.turned) { // Change direction of particle if facing left
+                        pellet.xChange = -pellet.xChange;
+                        pellet.x = player.x + player.inner_x + 2;
+                    }
+                    pellets.push(pellet)
+                }
                 player.shoot = true;
             }
     }
@@ -926,17 +1038,20 @@ function activate(event) {  // 🟢
 function deactivate(event) { // 🔴
     let key = event.key;
 
-
     switch (key) {
+        case "a":
         case "ArrowLeft":
             moveLeft = false;
             break;
+        case "d":
         case "ArrowRight":
             moveRight = false;
             break;
+        case "w":
         case "ArrowUp":
             moveUp = false;
             break;
+        case "s":
         case "ArrowDown":
             moveDown = false;
             break;
@@ -945,9 +1060,7 @@ function deactivate(event) { // 🔴
             if (player.weapon == "beam") {
                 
                 firing_beam_audio.currentTime = 3.5
-                if (!winner && !(player.health < 0)) {
-                    // power_down_audio.play();
-                
+                if (!winner && !(player.health > 0)) {                
                     player_counter = 10;
                     player.shoot = "wind_down"; // Power down energy weapon
                 }
@@ -979,7 +1092,7 @@ function turn(position, state) {
 }
 
 
-function collides(e1, e2) {
+/* function collides(e1, e2) {
     disableCollisions();
     if (((e1.x + e1.inner_width) < e2.x) || ((e2.x + e2.inner_width) < e1.x) || (e1.y > (e2.y + e2.height)) || (e2.y > (e1.y + e1.height))) {
         return false;
@@ -1001,61 +1114,15 @@ function disableCollisions() {
         collision_counter = 0;
         enableCollisions();
     }
-}
+} */
+hitmarker_audio.play();
 
 // Player hits Enemy
-function enemy_hit() {
-    for (let enemy of active_enemies) {
-        if (player.turned == false) {
-            // if (
-                    // X VALUES ALIGN?
-                    //(
-                        // AFTER THE START OF THE BEAM
-                        //(
-                            //(enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)
-                        //) 
-                        //&&
-                        // BEFORE THE END OF THE BEAM
-                        //(
-                            //(enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)
-                        //)
-                    //) 
-                    //&&
-                    // Y VALUES ALIGN
-                    //(
-                        // TOP OF ENEMY
-                        //(
-                            // UNDER TOP OF BEAM
-                            //(enemy.y > player.y)
-                            //&&
-                            // ABOVE BOTTOM OF BEAM
-                            //(enemy.y < (player.y + player.height))
-                        //)
-                        //||
-                        // BOTTOM OF ENEMY
-                        //(
-                            // UNDER TOP OF BEAM
-                            //(enemy.y + enemy.height > player.y + player.inner_y)
-                            //&&
-                            // ABOVE BOTTOM OF BEAM
-                            //(enemy.y + enemy.height < player.y + player.height)
-                        //)
-                        //||
-                        // BODY OF ENEMY (IF ENEMY IS BIGGER THAN PLAYER AND PLAYER GETS A BODY SHOT (NO HEAD OR FEET ARE SHOT))
-                        //(
-                            // TOP OF ENEMY IS ABOVE PLAYER
-                            //(enemy.y < player.y) 
-                            //&&
-                            // BOTTOM OF ENEMY IS BELOW PLAYER
-                            //((enemy.y + enemy.height) > (player.y + player.height))
-                        //)
-                    //)
-                //) {}
-            if (((enemy.x + enemy.inner_x) > (player.x + player.inner_x + player.inner_width)) && ((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.width)) && (((enemy.y + enemy.inner_y > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + player.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || ((enemy.y + enemy.inner_y < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
-                console.log("DIRECT HIT!");
-                hitmarker_audio.play();
-                enemy.health -= player.damage;
-                if (enemy.health <= 0) {
+function enemy_hit(enemy) {
+    console.log("DIRECT HIT!");
+    hitmarker_audio.play();
+    enemy.health -= player.damage;
+    if (enemy.health <= 0) {
                     let index = active_enemies.indexOf(enemy);
                     active_enemies.splice(index, 1);
                     enemy_amount -= 1;
@@ -1074,91 +1141,7 @@ function enemy_hit() {
                     enemy.height = 13;
                     enemy.inner_height = 13 + randint(-5,5)
                     ash_piles.push(enemy);
-                }
-            }
         }
-        else if (player.turned) {
-            // if (
-                    // X VALUES ALIGN?
-                    //(
-                        // BEFORE THE START OF THE BEAM
-                        //(
-                            //(enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)
-                        //)
-                        //&&
-                        // AFTER THE END OF THE BEAM
-                        //(
-                            //enemy.x > player.x
-                        //)
-                    //) 
-                    //&&
-                    // Y VALUES ALIGN
-                    //(
-                        // TOP OF ENEMY
-                        //(
-                            // UNDER TOP OF BEAM
-                            //(
-                                //enemy.y > player.y
-                            //)
-                            //&&
-                            // ABOVE BOTTOM OF BEAM
-                            //(
-                                //enemy.y < (player.y + player.height)
-                            //)
-                        //)
-                        //||
-                        // BOTTOM OF ENEMY
-                        //(
-                            // UNDER TOP OF BEAM
-                            //(
-                                //(enemy.y + enemy.height) > player.y + player.inner_y
-                            //)
-                            //&&
-                            // ABOVE BOTTOM OF BEAM
-                            //(
-                                //(enemy.y + enemy.height) < (player.y + player.height)
-                            //)
-                        //)
-                        //||
-                        // BODY OF ENEMY (IF ENEMY IS BIGGER THAN PLAYER AND PLAYER GETS A BODY SHOT (NO HEAD OR FEET ARE SHOT))
-                        //(
-                            // TOP OF ENEMY IS ABOVE PLAYER
-                            //(
-                                //enemy.y < player.y
-                            //) 
-                            //&&
-                            // BOTTOM OF ENEMY IS BELOW PLAYER
-                            //(
-                                //(enemy.y + enemy.height) > (player.y + player.height)
-                            //)
-                        //)
-                    //)
-                //) {}
-            if ((((enemy.x + enemy.inner_x + enemy.inner_width) < (player.x + player.inner_x)) && ((enemy.x + enemy.inner_x + enemy.inner_width) > player.x)) && ((((enemy.y + enemy.inner_y) > player.y) && ((enemy.y + enemy.inner_y) < (player.y + player.height))) || (((enemy.y + enemy.inner_y + enemy.inner_height) > player.y + player.inner_y) && ((enemy.y + enemy.inner_y + enemy.height) < (player.y + player.height))) || (((enemy.y + enemy.inner_y) < player.y) && ((enemy.y + enemy.inner_y + enemy.height) > (player.y + player.height))))) {
-                //if   (left of enemy's body > the far left of player's box(beam) and right of enemy's body < start of beam                            and              top of enemy's body underneath top of player's body while also being above the bottom of the player's body. Or, on the other hand, the bottom of the enemy's body being above the bottom of the player's body while also being underneath the top of the player's body
-                //if enemy's body is between the x-plane area where the player's beam starts and ends                                                  and              y-plane area
-                console.log("DIRECT HIT!");
-                hitmarker_audio.play();
-                let index = active_enemies.indexOf(enemy);
-                active_enemies.splice(index, 1);
-                enemy_amount -= 1;
-
-                enemy.xChange = enemy.xChange * 5;
-                if (player.x + player.inner_x + player.inner_width < enemy.x && enemy.xChange < 0) {
-                    console.log("Changing xChange of enemy")
-                    enemy.xChange = enemy.xChange * -1;
-                }
-                else if (enemy.x + enemy.inner_x + enemy.inner_width < player.x + player.inner_x && enemy.xChange < 0) {
-                    enemy.xChange = -enemy.xChange;
-                }
-                enemy.y += enemy.height / 2;
-                enemy.yChange = -3;
-                enemy.width = 30;
-                enemy.height = 13;
-                ash_piles.push(enemy);
-            }
-        }
-    }
 }
 
 // Player Dies
@@ -1172,7 +1155,7 @@ function load_assets(assets, callback_function) {  // Ensures assets (images/aud
     let loaded = function () {
         number_of_assets -= 1;
         if (number_of_assets === 0) {
-            callback_function();  // Note that this does not call the function titled 'callback_function' but instead, the string name of a function is inserted here and the result is called
+            callback_function();  // Note that this does not call the function titled 'callback_function' but instead, the string name of a function is inserted here and the result is called. This is where the parameter is inserted.
         }
     };
     for (let asset of assets) {
