@@ -104,12 +104,18 @@ let player = {
     shoot: false,
     weapon: "pellet",
     damage: 50,
-    immune: false
+    immune: false,
+    speed: 0.8,
+    bought_items: []
 };
 let score = 0;
-let coins = 0;
+let coins = 1000;
+let unlocked_weapons = ["pellet"];
+
+let coin_color = "white";
 
 // Weapons
+let damage_modifier = 1;
 // Pellet
 let pellet;
 let pellets = [];
@@ -163,12 +169,23 @@ let ShopImage1 = new Image();
 let ShopInterior1 = new Image();
 let ShowroomImage = new Image();
 let Podium = new Image();
+let Selected_Podium = new Image();
+
+let Spacebar = new Image();
+let Enter = new Image();
 
 let Heart_Image = new Image();
-let Fox_Image = new Image();
-let Beam_Weapon_Image = new Image();
+let Extra_Heart_Title = new Image();
+let Extra_Heart_Description = new Image();
 
-let fox_description = new Image();
+let Fox_Image = new Image();
+let Fox_Title = new Image();
+let Fox_Description = new Image();
+
+let Beam_Weapon_Image = new Image();
+let Beam_Title = new Image();
+let Beam_Weapon_Description = new Image();
+
 
 
 
@@ -179,6 +196,7 @@ let firing_beam_audio = new Audio();
 let hitmarker_audio = new Audio();
 let spotlight_audio = new Audio();
 let shop_audio = new Audio();
+let purchase_audio = new Audio();
 
 
 
@@ -191,7 +209,7 @@ let active_enemies = [];
 let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
 let enemy_counter = 0;
 let ash_piles = [];
-let enemy_amount = 10;
+let enemy_amount = 0;
 
 
 
@@ -204,12 +222,21 @@ let shop3_inventory = [];
 let fox = {
     name: "Fox",
     image: Fox_Image,
-    x: 0,
-    y: 0,
+    title_image: Fox_Title,
+    description_image: Fox_Description,
+    x: 300,
+    y: 150,
     width: 32,
     height: 32,
     frameX: 0,
     frameY: 0,
+
+    xChange: 3,
+    yChange: 3,
+    speed: 0.8,
+
+    turned: false,
+
     shop_x: 85,
     shop_y: 65,
     shop_width: 120,
@@ -222,6 +249,8 @@ let fox = {
 let beam_weapon = {
     name: "Beam",
     image: Beam_Weapon_Image,
+    title_image: Beam_Title,
+    description_image: Beam_Weapon_Description,
     width: 500,
     height: 500,
     frameX: 0,
@@ -238,11 +267,13 @@ let beam_weapon = {
 let extra_heart = {
     name: "Extra Heart",
     image: Heart_Image,
+    title_image: Extra_Heart_Title,
+    description_image: Extra_Heart_Description,
     width: 56,
     height: 47,
     frameX: 0,
     frameY: 0,
-    shop_x: 100,
+    shop_x: 105,
     shop_y: 105,
     shop_width: 85,
     shop_height: 75,
@@ -253,6 +284,8 @@ let extra_heart = {
 
 let items = [fox, beam_weapon, extra_heart];
 let available_items = [fox, beam_weapon, extra_heart];
+let selected_item;
+let selected_index = 1;
 
 
 document.addEventListener("DOMContentLoaded", init, false)
@@ -281,6 +314,7 @@ function init() {
         let index = available_items.indexOf(chosen_item); // find the index of this item in available_items list
         available_items.splice(index, 1); // remove this item from the choice pool to prevent the same item from being offered twice
     }
+
     // console.log("Shop 1's Inventory: " + shop1_inventory[0].name + ", " + shop1_inventory[1].name + ", " + shop1_inventory[2].name)
 
 
@@ -306,18 +340,30 @@ function init() {
         { "var": ShopInterior1, "url": "/static/Assets/Tileset/Shop1_BG.png" },
         { "var": ShowroomImage, "url": "/static/Assets/Tileset/black spotlight.png" },
         { "var": Podium, "url": "/static/Assets/Tileset/Shop_Podium.png" },
+        { "var": Selected_Podium, "url": "/static/Assets/Tileset/Shop_Podium_Selected.png" },
+
+        { "var": Spacebar, "url": "/static/Assets/Player/spacebar_icon.png"},
+        { "var": Enter, "url": "/static/Assets/Player/enter_icon.png"},
 
         { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
+        { "var": Extra_Heart_Description, "url": "/static/Assets/Player/Extra_Heart_Description.png"},
+        { "var": Extra_Heart_Title, "url": "/static/Assets/Player/Extra_Heart_Title.png" },
+
         { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
-        { "var": fox_description, "url": "/static/Assets/Player/Fox_Description.png"},
+        { "var": Fox_Description, "url": "/static/Assets/Player/Fox_Description.png"},
+        { "var": Fox_Title, "url": "/static/Assets/Player/Fox_Title.png"},
+
         { "var": Beam_Weapon_Image, "url": "/static/Assets/Player/Energy Beam Weapon.png"},
+        { "var": Beam_Weapon_Description, "url": "/static/Assets/Player/Beam_Description.png"},
+        { "var": Beam_Title, "url": "/static/Assets/Player/Beam_Title.png"},
 
         { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
         { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
         { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
         { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"},
         { "var": spotlight_audio, "url": "/static/Assets/Audio/SFX/Spotlight.mp3"},
-        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"}
+        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"},
+        { "var": purchase_audio, "url": "/static/Assets/Audio/SFX/Purchase.wav"}
     ], draw);
 
     // Accompanying Developer Music
@@ -356,7 +402,7 @@ function draw() {
 
     // Draw Enemy Counter that will be covered over once round ends
     context.font = "20px Arial";
-    context.fillText("Enemies Remaining: " + enemy_amount, -110 + ((unconditional_counter) % (canvas.width + 110)), canvas.height - 5);
+    context.fillText("Enemies Remaining: " + enemy_amount, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
 
     // Draw background on canvas
     for (let r = starting_row; r < end_row; r += 1) {
@@ -413,6 +459,17 @@ function draw() {
             ash_pile.x, ash_pile.y, ash_pile.width, ash_pile.inner_height
             );
     }
+
+    // Draw Pet
+    if (player.bought_items.includes("Fox")) {
+        context.drawImage(Fox_Image,
+            fox.width * fox.frameX,
+            fox.height * fox.frameY,
+            fox.width,
+            fox.height,
+            
+            fox.x, fox.y, fox.width, fox.height)
+    };
 
     // Draw Player
     context.drawImage(playerImage,
@@ -539,9 +596,18 @@ function draw() {
 
     // Draw Interior of shop + items
     if (in_shop == true) {
+        selected_item = shop1_inventory[selected_index];
         context.drawImage(ShowroomImage, 0, 0, canvas.width, canvas.height)
         if (unconditional_counter >= 70) {  // Comes first so that background of shop is in the background, not in front of the items
             context.drawImage(ShopInterior1, 0, 0, canvas.width, canvas.height)
+            
+            context.fillStyle = "white";
+            context.font = "Arial 40px";
+            context.fillText("Purchase", 140, 25);
+            context.drawImage(Spacebar, 230, 0, 40, 40);
+
+            context.fillText("Exit", 320, 25);
+            context.drawImage(Enter, 365, 4, 30, 30);
             background_audio.play();
         }
         if (unconditional_counter == 10) {
@@ -549,88 +615,169 @@ function draw() {
             spotlight_audio.play();
         }
         if (unconditional_counter >= 10) {
-            context.drawImage(Podium,
-                              0,
-                              0,
-                              500,
-                              500,
-                              
-                              20,
-                              150,
-                              250,
-                              250
-                              );
-            context.drawImage(shop1_inventory[0].image,
-                              shop1_inventory[0].width * shop1_inventory[0].frameX,
-                              shop1_inventory[0].height * shop1_inventory[0].frameY,
-                              shop1_inventory[0].width,
-                              shop1_inventory[0].height,
-                              
-                              shop1_inventory[0].shop_x,
-                              shop1_inventory[0].shop_y,
-                              shop1_inventory[0].shop_width,
-                              shop1_inventory[0].shop_height
-                              );
+            if (selected_item == shop1_inventory[0]) {
+                context.drawImage(Selected_Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 20,
+                                                 150,
+                                                 250,
+                                                 250
+                );
+            }
+            else {
+                context.drawImage(Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 20,
+                                                 150,
+                                                 250,
+                                                 250
+                );
+            }
+            if (!player.bought_items.includes(shop1_inventory[0].name)) {
+                context.drawImage(shop1_inventory[0].image,
+                                shop1_inventory[0].width * shop1_inventory[0].frameX,
+                                shop1_inventory[0].height * shop1_inventory[0].frameY,
+                                shop1_inventory[0].width,
+                                shop1_inventory[0].height,
+                                
+                                shop1_inventory[0].shop_x,
+                                shop1_inventory[0].shop_y,
+                                shop1_inventory[0].shop_width,
+                                shop1_inventory[0].shop_height
+                                );
+                }
         }
         if (unconditional_counter == 30) {
             spotlight_audio.currentTime = 0;
             spotlight_audio.play();
         }
         if (unconditional_counter >= 30) {
-            context.drawImage(Podium,
-                              0,
-                              0,
-                              500,
-                              500,
-                              
-                              170,
-                              140,
-                              255,
-                              255
+            if (selected_item == shop1_inventory[1]) {
+                context.drawImage(Selected_Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 170,
+                                                 140,
+                                                 255,
+                                                 255
                               );
-            context.drawImage(shop1_inventory[1].image,
-                              shop1_inventory[1].width * shop1_inventory[1].frameX,
-                              shop1_inventory[1].height * shop1_inventory[1].frameY,
-                              shop1_inventory[1].width,
-                              shop1_inventory[1].height,
-                              
-                              shop1_inventory[1].shop_x + 150,
-                              shop1_inventory[1].shop_y - 3,
-                              shop1_inventory[1].shop_width,
-                              shop1_inventory[1].shop_height
-                              );
+            }
+            else {
+                context.drawImage(Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 170,
+                                                 140,
+                                                 255,
+                                                 255
+                    );
+            }
+            if (!player.bought_items.includes(shop1_inventory[1].name)) {
+                context.drawImage(shop1_inventory[1].image,
+                                shop1_inventory[1].width * shop1_inventory[1].frameX,
+                                shop1_inventory[1].height * shop1_inventory[1].frameY,
+                                shop1_inventory[1].width,
+                                shop1_inventory[1].height,
+                                
+                                shop1_inventory[1].shop_x + 150,
+                                shop1_inventory[1].shop_y - 3,
+                                shop1_inventory[1].shop_width,
+                                shop1_inventory[1].shop_height
+                                );
+            }
         }
         if (unconditional_counter == 50) {
             spotlight_audio.currentTime = 0;
             spotlight_audio.play();
         }
         if (unconditional_counter >= 50) {
-            context.drawImage(Podium,
-                              0,
-                              0,
-                              500,
-                              500,
-                              
-                              320,
-                              150,
-                              250,
-                              250);
-            context.drawImage(shop1_inventory[2].image,
-                              shop1_inventory[2].width * shop1_inventory[2].frameX,
-                              shop1_inventory[2].height * shop1_inventory[2].frameY,
-                              shop1_inventory[2].width,
-                              shop1_inventory[2].height,
-                              
-                              shop1_inventory[2].shop_x + 300,
-                              shop1_inventory[2].shop_y,
-                              shop1_inventory[2].shop_width,
-                              shop1_inventory[2].shop_height
-                              );
+            if (selected_item == shop1_inventory[2]) {
+                context.drawImage(Selected_Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 320,
+                                                 150,
+                                                 250,
+                                                 250);
+            }
+            else {
+                context.drawImage(Podium,
+                                                 0,
+                                                 0,
+                                                 500,
+                                                 500,
+                                                 
+                                                 320,
+                                                 150,
+                                                 250,
+                                                 250);
+            }
+            if (!player.bought_items.includes(shop1_inventory[2].name)) {
+                context.drawImage(shop1_inventory[2].image,
+                                shop1_inventory[2].width * shop1_inventory[2].frameX,
+                                shop1_inventory[2].height * shop1_inventory[2].frameY,
+                                shop1_inventory[2].width,
+                                shop1_inventory[2].height,
+                                
+                                shop1_inventory[2].shop_x + 300,
+                                shop1_inventory[2].shop_y,
+                                shop1_inventory[2].shop_width,
+                                shop1_inventory[2].shop_height
+                                );
+            }
         }
-        context.drawImage(fox_description, 0, 225, 600, 75)
+        if (unconditional_counter > 70) {
+            if (!player.bought_items.includes(shop1_inventory[0].name)) {
+                context.drawImage(coinImage, 0, 0, 7, 8,
+                                                                    105, 197, 20, 23);
+                context.fillText(shop1_inventory[0].cost, 130, 216)
+            }
+
+            if (!player.bought_items.includes(shop1_inventory[1].name)) {    
+                context.drawImage(coinImage, 0, 0, 7, 8,
+                                                                    260, 188, 20, 23);
+                context.fillText(shop1_inventory[1].cost, 285, 207)
+            }
+
+            if (!player.bought_items.includes(shop1_inventory[2].name)) {    
+                context.drawImage(coinImage, 0, 0, 7, 8,
+                                                                    410, 197, 20, 23);
+                context.fillText(shop1_inventory[2].cost, 435, 216)
+            }
+
+            if (selected_item == shop1_inventory[0] && !player.bought_items.includes(shop1_inventory[0].name)) {
+                context.drawImage(shop1_inventory[0].title_image, 55, 25, 180, 70);
+                context.drawImage(shop1_inventory[0].description_image, 0, 225, 600, 75);
+            }
+            else if (selected_item == shop1_inventory[1] && !player.bought_items.includes(shop1_inventory[1].name)) {
+                context.drawImage(shop1_inventory[1].title_image, 210, 25, 180, 70);
+                context.drawImage(shop1_inventory[1].description_image, 0, 225, 600, 75);
+            }
+            else if (selected_item == shop1_inventory[2] && !player.bought_items.includes(shop1_inventory[2].name)) {
+                context.drawImage(shop1_inventory[2].title_image, 360, 25, 180, 70);
+                context.drawImage(shop1_inventory[2].description_image, 0, 225, 600, 75);
+            }
+        }
     }
 
-    // Create Hearts
+    // Create Hearts & Draw
     if (hearts.length < player.max_health / 100) {
         for (let heart_number = (hearts.length * 100); heart_number < player.max_health; heart_number += 100) {
                 let heart = {
@@ -735,9 +882,10 @@ function draw() {
             }
         }
         // Score
-    context.fillStyle = "red"
+    context.fillStyle = "white";
     context.fillText("Score: " + score, 5, 20, 100, 10);
         // Coins
+    context.fillStyle = "black";
     context.fillRect(5, 25, 65, 20);
     context.drawImage(coinImage,
                                      0,
@@ -749,9 +897,12 @@ function draw() {
                                      27,
                                      15,
                                      16);
-    context.fillStyle = "white"
-    
+    context.fillStyle = coin_color;  // not simply set to "white" so that it can be clear to players if they don't have enough money when going to purchase an item in the shop
+    if (unconditional_counter % 30 == 0) {
+        coin_color = "white";
+    }
     context.fillText(coins, 27, 42, 40)
+
 
 
     // Player Movement & Physics
@@ -764,7 +915,7 @@ function draw() {
         player.frameX = (player.frameX + 1) % 8;
     }
     // Idle
-    if ((!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) && player.immune == false && player.health != 0) {
+    if ((!(moveLeft || moveRight || moveUp || moveDown) || (moveRight && moveLeft) || (moveUp && moveDown)) && player.immune == false && !(player.health <= 0)) {
         if (player.weapon != "beam" || player.shoot == false) {
 
             if (player.frameY != 0 && player.frameY != 5) {
@@ -808,11 +959,66 @@ function draw() {
         }
         player.frameX = (player.frameX + 1) % 2;
     }
+
     player.x += player.xChange;
     player.y += player.yChange;
 
     player.xChange = player.xChange * 0.95;
     player.yChange = player.yChange * 0.95;
+
+
+    // Pet Movement
+    if (player.bought_items.includes("Fox")) {
+        // Moving animation
+        if (((player.x + player.inner_x) - fox.x >= 30) || ((player.x + player.inner_x) - fox.x <= -20) || ((player.y + player.inner_y) - (fox.y + fox.height) >= 5) || (fox.y - (player.y + player.inner_y + player.inner_height) >= -15)) {
+            if (unconditional_counter % 2 == 0) fox.frameX = (fox.frameX + 1) % 8;
+            fox.xChange += 0.1;
+            fox.yChange += 0.1;
+        }
+        // Idle animation
+        else {
+            fox.frameY = 1;
+            if (fox.turned) fox.frameY = 8;
+            if (unconditional_counter % 4 == 0) fox.frameX = (fox.frameX + 1) % 14;
+            fox.xChange = 0.5;
+            fox.yChange = 0.5;
+        }
+        // Face fox left
+        if (fox.x > player.x + player.inner_x + player.inner_width) {
+            turn("left", fox);
+        }
+        // Face fox right
+        else if (fox.x + fox.width < player.x + player.inner_x) {
+            turn("right", fox);
+        }
+        // right
+        if ((player.x + player.inner_x) - fox.x >= 30) {
+            fox.x += fox.xChange;
+            fox.frameY = 2;
+            if (fox.turned) fox.frameY = 9;
+        }
+        // left
+        if ((player.x + player.inner_x) - fox.x <= -20) {
+            fox.x -= fox.xChange;
+            fox.frameY = 2;
+            if (fox.turned) fox.frameY = 9;
+        }
+        // down
+        if ((player.y + player.inner_y) - (fox.y + fox.height) >= 5) {
+            fox.y += fox.yChange;
+            fox.frameY = 2;
+            if (fox.turned) fox.frameY = 9;
+        }
+        // up 
+        if (fox.y - (player.y + player.inner_y + player.inner_height) >= -15) {
+            fox.y -= fox.yChange;
+            fox.frameY = 2;
+            if (fox.turned) fox.frameY = 9;
+        }
+    }
+
+
+
 
 
     // Weapon Particle Movement
@@ -895,12 +1101,12 @@ function draw() {
     }
 
     // Shop Item Animations
-    if (shop1_inventory.includes(fox)) {
+    if (in_shop && shop1_inventory.includes(fox)) {  // Sleeping
         shop1_inventory[shop1_inventory.indexOf(fox)].frameY = 5;
         if (unconditional_counter % 15 == 0 || unconditional_counter % 20 == 0)
         shop1_inventory[shop1_inventory.indexOf(fox)].frameX = (shop1_inventory[shop1_inventory.indexOf(fox)].frameX + 1) % 5;
     }
-    if (shop1_inventory.includes(extra_heart)) {
+    if (in_shop && shop1_inventory.includes(extra_heart)) {  // Heartbeat
         if (unconditional_counter % 25 == 0) {
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_x += 2;
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_y += 2;
@@ -908,7 +1114,6 @@ function draw() {
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_height -= 2;
         }
         else if (unconditional_counter % 25 == 3) {
-            
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_x -= 2;
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_y -= 2;
             shop1_inventory[shop1_inventory.indexOf(extra_heart)].shop_width += 2;
@@ -986,17 +1191,17 @@ function draw() {
 
     if (moveLeft) {
         turn("left", player);
-        player.xChange -= 0.8;  // Acceleration!
+        player.xChange -= player.speed;  // Acceleration!
     }
     if (moveRight) {
         turn("right", player);
-        player.xChange += 0.8;
+        player.xChange += player.speed;
     }
     if (moveUp) {
-        player.yChange -= 0.8;
+        player.yChange -= player.speed;
     }
     if (moveDown) {
-        player.yChange += 0.8;
+        player.yChange += player.speed;
     }
 
     // Shooting
@@ -1087,21 +1292,6 @@ function draw() {
     if (unconditional_counter == noted_counter + 30) {
         player.immune = false;
     }
-    
-    // //COLLIDING WITH OTHER ENEMY
-    // for (let target_enemy of active_enemies) {
-    //     for (let compared_enemy of active_enemies) {
-    //         if (enable_collisions) {
-    //             if (target_enemy != compared_enemy) {
-    //                 if (collides(target_enemy, compared_enemy)) {
-    //                     console.log("Collision!")
-    //                     // What to do! 🔴🔴🔴
-    //                     target_enemy.xChange -= .1;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 
 
 
@@ -1134,36 +1324,45 @@ function activate(event) {  // 🟢
     switch (key) {
         case "a":
         case "ArrowLeft":
-            if (!(player.weapon == "beam" && player.shoot == true) && in_shop == false && !(player.health <= 0)) {
+            if (!(player.weapon == "beam" && player.shoot == true) && !in_shop && !(player.health <= 0)) {
                 moveLeft = true;
+            }
+            else if (in_shop) {
+                selected_index -= 1;
+                if (selected_index == -1) {selected_index = 2;}
             }
             break; // would go through each case until it reaches a break if this wasn't here. Therefore, each case is its own if statement. By inserting a break at the end of each one, the cases become 'else if' statements.
         case "d":
         case "ArrowRight":
-            if (!(player.weapon == "beam" && player.shoot == true) && in_shop == false && !(player.health <= 0)) {
+            if (!(player.weapon == "beam" && player.shoot == true) && !in_shop && !(player.health <= 0)) {
                 moveRight = true;
+            }
+            else if (in_shop) {
+                selected_index += 1;
+                if (selected_index == 3) {selected_index = 0;}
             }
             break;
         case "w":
         case "ArrowUp":
-            if (!(player.weapon == "beam" && player.shoot == true) && in_shop == false && !(player.health <= 0)) {
+            if (!(player.weapon == "beam" && player.shoot == true) && !in_shop && !(player.health <= 0)) {
                 moveUp = true;
             }
             break;
         case "s":
         case "ArrowDown":
-            if (!(player.weapon == "beam" && player.shoot == true) && in_shop == false && !(player.health <= 0)) {
+            if (!(player.weapon == "beam" && player.shoot == true) && !in_shop && !(player.health <= 0)) {
                 moveDown = true;
             }
             break;
         case " ":
-            if (shop.in_view == "yes" && in_shop == false && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {  // Enter Shop
-                in_shop = true;
-                background_audio.pause();
-                unconditional_counter = -1; // To create a staggered presentation of items on sale in shop
+            if (in_shop && coins >= shop1_inventory[selected_index].cost && !player.bought_items.includes(shop1_inventory[selected_index].name) && unconditional_counter > 70) { // Purchase something from shop
+                purchase_audio.play();
+                coins -= shop1_inventory[selected_index].cost;
+                purchase(shop1_inventory[selected_index]);
             }
-            else if (in_shop == true) { // Exit shop
-                in_shop = false;
+            else if (in_shop && !(coins >= shop1_inventory[selected_index].cost && unconditional_counter > 70)) { // if player has insufficient funds
+                coin_color = "red"
+                // play error sound
             }
             if (player.shoot == false && winner != true && !(player.health <= 0)) { // Shoot
                 if (player.weapon == "beam") {
@@ -1190,13 +1389,29 @@ function activate(event) {  // 🟢
                 player.shoot = true;
             }
             break;
-        case "1":
-            player.weapon = "pellet";
-            player.damage = 50;
+        case "Enter":
+            if (shop.in_view == "yes" && !in_shop && ((player.y > shop.y + shop.inner_height - 15 && player.y + player.inner_y + player.inner_height < shop.y + shop.height) && (player.x + player.inner_x < shop.x + shop.inner_x + shop.inner_width && player.x + player.inner_x > shop.x + shop.inner_x))) {  // Enter Shop
+                in_shop = true;
+                background_audio.pause();
+                unconditional_counter = -1; // To create a staggered presentation of items on sale in shop
+            }
+            else if (in_shop) in_shop = false; // Exit shop
             break;
-        case "2":
-            player.weapon = "beam";
-            player.damage = 15;
+        case "Escape":
+            if (in_shop) in_shop = false;
+            break;
+        case "c":
+            if (unlocked_weapons.indexOf(player.weapon) == unlocked_weapons.length - 1) player.weapon = unlocked_weapons[0];
+            else player.weapon = unlocked_weapons[unlocked_weapons.indexOf(player.weapon) + 1];
+            
+            switch (player.weapon) {
+                case "pellet":
+                    player.damage = 50 * damage_modifier;
+                    break;
+                case "beam":
+                    player.damage = 15 * damage_modifier;
+                    break;
+            }
             break;
     }
 }
@@ -1234,58 +1449,41 @@ function deactivate(event) { // 🔴
     }
 }
 
-function turn(position, state) {
+function turn(position, object) {
     if (position == "left") {
-        if (state.turned == true) {
-        }
-        else if (state.turned == false) {
-            state.x -= state.width - state.inner_x - state.inner_width;
+        if (object.turned == false && object == player) {
+            object.x -= object.width - object.inner_x - object.inner_width;
         }
 
-        state.turned = true;
-        state.frameY = 6;
-        state.inner_x = 80;
+        object.turned = true;
+
+        if (object == player) {
+            object.frameY = 6;
+            object.inner_x = 80;
+        }
+        else if (object == fox) {
+            object.frameY = 8;
+        }
     }
     else if (position == "right") {
-        if (state.turned == true) {
-            state.x += state.inner_x;
+        
+        if (object.turned == true && object == player) {
+            object.x += object.inner_x;
         }
 
-        state.turned = false;
-        state.frameY = 1;
-        state.inner_x = 9;
+        object.turned = false;
+        
+        if (object == player) {
+            object.frameY = 1;
+            object.inner_x = 9;
+        }
     }
 }
-
-
-/* function collides(e1, e2) {
-    disableCollisions();
-    if (((e1.x + e1.inner_width) < e2.x) || ((e2.x + e2.inner_width) < e1.x) || (e1.y > (e2.y + e2.height)) || (e2.y > (e1.y + e1.height))) {
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
-function enableCollisions() {
-    enable_collisions = true;
-}
-function disableCollisions() {
-    enable_collisions = false;
-
-    // Wait for some time before enabling collisions again
-    collision_counter += 1;
-    if (collision_counter == 50) {
-        collision_counter = 0;
-        enableCollisions();
-    }
-} */
-hitmarker_audio.play();
 
 // Player hits Enemy
 function enemy_hit(enemy) {
     console.log("DIRECT HIT!");
+    hitmarker_audio.currentTime = 0;
     hitmarker_audio.play();
     score += enemy.hit_score;
     enemy.health -= player.damage;
@@ -1312,6 +1510,26 @@ function enemy_hit(enemy) {
         ash_piles.push(enemy);
         }
 }
+
+function purchase(item) {
+    player.bought_items.push(item.name);
+    if (item == extra_heart) {
+        player.max_health += 100;
+        player.health += 100;
+    }
+    else if (item == beam_weapon) {
+        unlocked_weapons.push("beam");
+    }
+}
+
+
+
+
+
+
+
+
+
 
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run
@@ -1342,147 +1560,3 @@ function randint(min, max) {
     return Math.round(Math.random() * (max - min)) + min;
 }
 
-let css_colors = [
-    "AliceBlue",
-    "AntiqueWhite",
-    "Aqua",
-    "Aquamarine",
-    "Azure",
-    "Beige",
-    "Bisque",
-    "BlanchedAlmond",
-    "Blue",
-    "BlueViolet",
-    "Brown",
-    "BurlyWood",
-    "CadetBlue",
-    "Chartreuse",
-    "Chocolate",
-    "Coral",
-    "CornflowerBlue",
-    "Cornsilk",
-    "Crimson",
-    "Cyan",
-    "DarkBlue",
-    "DarkCyan",
-    "DarkGoldenRod",
-    "DarkGray",
-    "DarkGrey",
-    "DarkGreen",
-    "DarkKhaki",
-    "DarkMagenta",
-    "DarkOliveGreen",
-    "DarkOrange",
-    "DarkOrchid",
-    "DarkRed",
-    "DarkSalmon",
-    "DarkSeaGreen",
-    "DarkSlateBlue",
-    "DarkSlateGray",
-    "DarkSlateGrey",
-    "DarkTurquoise",
-    "DarkViolet",
-    "DeepPink",
-    "DeepSkyBlue",
-    "DimGray",
-    "DimGrey",
-    "DodgerBlue",
-    "FireBrick",
-    "FloralWhite",
-    "ForestGreen",
-    "Fuchsia",
-    "GhostWhite",
-    "Gold",
-    "GoldenRod",
-    "Gray",
-    "Grey",
-    "Green",
-    "GreenYellow",
-    "HoneyDew",
-    "HotPink",
-    "IndianRed",
-    "Indigo",
-    "Khaki",
-    "LavenderBlush",
-    "LawnGreen",
-    "LemonChiffon",
-    "LightBlue",
-    "LightCoral",
-    "LightCyan",
-    "LightGray",
-    "LightGrey",
-    "LightGreen",
-    "LightPink",
-    "LightSalmon",
-    "LightSeaGreen",
-    "LightSkyBlue",
-    "LightSlateGray",
-    "LightSlateGrey",
-    "LightSteelBlue",
-    "LightYellow",
-    "Lime",
-    "LimeGreen",
-    "Linen",
-    "Magenta",
-    "Maroon",
-    "MediumAquaMarine",
-    "MediumBlue",
-    "MediumOrchid",
-    "MediumPurple",
-    "MediumSeaGreen",
-    "MediumSlateBlue",
-    "MediumSpringGreen",
-    "MediumTurquoise",
-    "MediumVioletRed",
-    "MidnightBlue",
-    "MintCream",
-    "MistyRose",
-    "Moccasin",
-    "NavajoWhite",
-    "Navy",
-    "OldLace",
-    "Olive",
-    "OliveDrab",
-    "Orange",
-    "OrangeRed",
-    "Orchid",
-    "PaleGoldenRod",
-    "PaleGreen",
-    "PaleTurquoise",
-    "PaleVioletRed",
-    "PapayaWhip",
-    "PeachPuff",
-    "Peru",
-    "Pink",
-    "Plum",
-    "PowderBlue",
-    "Purple",
-    "Red",
-    "RosyBrown",
-    "RoyalBlue",
-    "SaddleBrown",
-    "Salmon",
-    "SandyBrown",
-    "SeaGreen",
-    "SeaShell",
-    "Sienna",
-    "Silver",
-    "SkyBlue",
-    "SlateBlue",
-    "SlateGray",
-    "Snow",
-    "SpringGreen",
-    "SteelBlue",
-    "Tan",
-    "Teal",
-    "Thistle",
-    "Tomato",
-    "Turquoise",
-    "Violet",
-    "Wheat",
-    "Yellow",
-    "YellowGreen"
-]
-
-let random_color = css_colors[randint(1, css_colors.length)];
-document.querySelector(":root").style.cssText = "--random_color: " + random_color;
