@@ -88,8 +88,8 @@ let shift_down = 24;
 let player = {
     max_health: 300,
     health: 300,
-    x: 0,
-    y: 0,
+    x: "canvas.width / 2 - player.width / 5", // to be set correctly once canvas is defined
+    y: "canvas.height / 2 - player.height / 2", // to be set correctly once canvas is defined
     inner_x: 9,
     inner_y: 4,
     inner_width: 15,
@@ -117,8 +117,8 @@ let pellets = [];
 let hearts = [];
 
 let shop = {
-    x: 0,
-    y: 0,
+    x: "canvas.width / 2 - shop.inner_width",
+    y: "-shop.height",
     inner_x: 56,
     inner_width: 88,
     inner_height: 111,
@@ -128,12 +128,6 @@ let shop = {
     in_view: "no"
 }
 
-let enemies = ["skull"];
-let active_enemies = [];
-let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-let enemy_counter = 0;
-let ash_piles = [];
-let enemy_amount = 10;
 
 let moveLeft = false;
 let moveRight = false;
@@ -161,8 +155,9 @@ let enemy_healthbar = new Image();
 let AshImage = new Image();
 
 let enemyImage_skull = new Image();
+let enemyImage_horse = new Image();
 
-let BackgroundImage = new Image();
+let BackgroundImageTileset = new Image();
 
 let ShopImage1 = new Image();
 let ShopInterior1 = new Image();
@@ -185,6 +180,23 @@ let hitmarker_audio = new Audio();
 let spotlight_audio = new Audio();
 let shop_audio = new Audio();
 
+
+
+
+
+// ENEMIES
+
+let enemies = ["skull", "horse"];
+let active_enemies = [];
+let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
+let enemy_counter = 0;
+let ash_piles = [];
+let enemy_amount = 10;
+
+
+
+
+// SHOP
 let shop1_inventory = [];
 let shop2_inventory = [];
 let shop3_inventory = [];
@@ -254,11 +266,11 @@ function init() {
     context.imageSmoothingEnabled = false; // Stops the sprite image from becoming blurry when idle
     
 
-    // Initial Player Positioning
+    // Objects that require Positioning relative to Canvas or otherwise
+        // Player
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
-
-    // Initial Shop Positioning
+        // Shop
     shop.x = canvas.width / 2 - shop.inner_width; // Centered
     shop.y = -shop.height; // Just above the canvas, out of sight
 
@@ -277,6 +289,8 @@ function init() {
 
 
     load_assets([
+        { "var": BackgroundImageTileset, "url": "/static/Assets/Tileset/tiles.png" },
+
         { "var": playerImage, "url": "/static/Assets/Player/player.png" },
         { "var": coinImage, "url": "/static/Assets/Player/coin.png" },
 
@@ -284,8 +298,10 @@ function init() {
         { "var": enemy_healthbar, "url": "/static/Assets/Player/Enemy Healthbar.png"},
 
         { "var": enemyImage_skull, "url": "/static/Assets/Enemies/fire-skull.png" },
+        { "var": enemyImage_horse, "url": "/static/Assets/Enemies/nightmare_horse.png" },
+
         { "var": AshImage, "url": "/static/Assets/Enemies/Ash.png" },
-        { "var": BackgroundImage, "url": "/static/Assets/Tileset/tiles.png" },
+
         { "var": ShopImage1, "url": "/static/Assets/Tileset/Shop1.png" },
         { "var": ShopInterior1, "url": "/static/Assets/Tileset/Shop1_BG.png" },
         { "var": ShowroomImage, "url": "/static/Assets/Tileset/black spotlight.png" },
@@ -293,6 +309,7 @@ function init() {
 
         { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
         { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
+        { "var": fox_description, "url": "/static/Assets/Player/Fox_Description.png"},
         { "var": Beam_Weapon_Image, "url": "/static/Assets/Player/Energy Beam Weapon.png"},
 
         { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
@@ -300,9 +317,7 @@ function init() {
         { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
         { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"},
         { "var": spotlight_audio, "url": "/static/Assets/Audio/SFX/Spotlight.mp3"},
-        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"},
-
-        { "var": fox_description, "url": "/static/Assets/Player/Fox_Description.png"}
+        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"}
     ], draw);
 
     // Accompanying Developer Music
@@ -351,7 +366,7 @@ function draw() {
                 let tileRow = Math.floor(tile / tilesPerRow);
                 let tileCol = Math.floor(tile % tilesPerRow);
                 if (winner) {
-                    context.drawImage(BackgroundImage,
+                    context.drawImage(BackgroundImageTileset,
                             tileCol * tileSize,
                             tileRow * tileSize,
                             tileSize,
@@ -363,7 +378,7 @@ function draw() {
                             tileSize / 1.2)
                     }
                     else {
-                        context.drawImage(BackgroundImage,
+                        context.drawImage(BackgroundImageTileset,
                             tileCol * tileSize,
                             tileRow * tileSize,
                             tileSize,
@@ -423,18 +438,17 @@ function draw() {
         enemy_counter += 1;
         if (enemy_randomiser == "skull") {
             let enemy = {
-                id : enemy_counter,
                 type : "skull",
                 image_name : enemyImage_skull,
                 max_health: 100,
                 health: 100,
                 damage: 50,
-
-                hit_score: 10,
-                kill_score: 190,
+            
+                hit_score: 20,
+                kill_score: 200,
                 coin_value: 543,
-
-                x: canvas.width - ((canvas.width) * randint(0,1)),
+            
+                x: canvas.width - ((canvas.width) * randint(0,1)), // from right or left-hand side
                 y: randint(50, canvas.height - 50),
                 inner_x: 7,
                 inner_y: 12,
@@ -446,13 +460,42 @@ function draw() {
                 frameY: 0,
                 xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
                 yChange: 2 - (4 * randint(0, 1)),
-
-                counter: 0
+            
+                counter: 0  // for slower animations
             };
             active_enemies.push(enemy);
         }
-        
+        else if (enemy_randomiser == "horse") {
+            let enemy = {
+                type : "horse",
+                image_name : enemyImage_horse,
+                max_health: 300,
+                health: 300,
+                damage: 100,
+            
+                hit_score: 50,
+                kill_score: 500,
+                coin_value: 250,
+            
+                x: canvas.width + 50, // from right or left-hand side
+                y: randint(50, canvas.height - 70),
+                inner_x: 8,
+                inner_y: 19,
+                inner_width: 43,
+                inner_height: 28,
+                width: 72,
+                height: 48,
+                frameX: 0,
+                frameY: 0,
+                xChange: -15,
+            
+                counter: 0  // for slower animations
+            }
+            active_enemies.push(enemy);
+        }
+        enemy_randomiser = enemies[randint(0, enemies.length - 1)];
     }
+        
     // WIN Round!
     else if (active_enemies.length == 0 && winner == false) {
         winner = true;
@@ -599,60 +642,67 @@ function draw() {
                 hearts.push(heart);
             }
         }
-    let health_lost = (player.max_health - player.health)
-    switch (health_lost) {
-        case 50:
-            hearts[0].frameX = 1;
-            break;
-        case 100:
-            hearts[0].frameX = 2;
-            break;
-        case 150:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 1;
-            break;
-        case 200:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            break;
-        case 250:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            hearts[2].frameX = 1;
-            break;
-        case 300:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            hearts[2].frameX = 2;
-            break;
-        case 350:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            hearts[2].frameX = 2;
-            hearts[3].frameX = 1;
-            break;
-        case 400:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            hearts[2].frameX = 2;
-            hearts[3].frameX = 2;
-            break;
-        case 450:
-            hearts[0].frameX = 2;
-            hearts[1].frameX = 2;
-            hearts[2].frameX = 2;
-            hearts[3].frameX = 2;
-            hearts[4].frameX = 1;
-            break;
-        case 500:
-            hearts.forEach(function(heart) {
-                heart.frameX = 2;
-              });
-            break;
-        default:
-            hearts.forEach(function(heart) {
-                heart.frameX = 0;
-              });
+    if (player.health >= 0) {
+        let health_lost = (player.max_health - player.health)
+        switch (health_lost) {
+            case 50:
+                hearts[0].frameX = 1;
+                break;
+            case 100:
+                hearts[0].frameX = 2;
+                break;
+            case 150:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 1;
+                break;
+            case 200:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                break;
+            case 250:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                hearts[2].frameX = 1;
+                break;
+            case 300:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                hearts[2].frameX = 2;
+                break;
+            case 350:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                hearts[2].frameX = 2;
+                hearts[3].frameX = 1;
+                break;
+            case 400:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                hearts[2].frameX = 2;
+                hearts[3].frameX = 2;
+                break;
+            case 450:
+                hearts[0].frameX = 2;
+                hearts[1].frameX = 2;
+                hearts[2].frameX = 2;
+                hearts[3].frameX = 2;
+                hearts[4].frameX = 1;
+                break;
+            case 500:
+                hearts.forEach(function(heart) {
+                    heart.frameX = 2;
+                });
+                break;
+            default:
+                hearts.forEach(function(heart) {
+                    heart.frameX = 0;
+                });
+        }
+    }
+    else {
+        hearts.forEach(function(heart) {
+            heart.frameX = 2;
+        });
     }
 
     // Draw UI
@@ -737,7 +787,8 @@ function draw() {
         player.yChange = player.yChange * 0.8;
     }
     // Dead
-    if (player.health == 0) {
+    if (player.health <= 0) {
+        moveLeft = moveRight = moveUp = moveDown = player.shoot = false;
         player.frameY = 4;
         if (player.turned) {
             player.frameY = 9;
@@ -800,6 +851,14 @@ function draw() {
             if (enemy.counter % 3 == 0) {
     	            enemy.frameX = (enemy.frameX + 1) % 8;
     
+            }
+        }
+        else if (enemy.type == "horse") {
+            enemy.x += enemy.xChange;
+
+            enemy.counter += 1;
+            if (enemy.counter % 3 == 0) {
+    	            enemy.frameX = (enemy.frameX + 1) % 4;
             }
         }
         else {
@@ -905,7 +964,15 @@ function draw() {
             if (enemy.y + enemy.inner_y + enemy.inner_height >= canvas.height - shift_down) {
                 enemy.yChange = -enemy.yChange;
             }
-    }
+        }
+        else if (enemy.type == "horse") {
+            // Hitting the edge of the canvas
+            // left side
+            if (enemy.x + enemy.inner_x + enemy.inner_width < -500 - (100 * active_enemies.indexOf(enemy))) {
+                enemy.x = canvas.width - enemy.inner_x;  // Come back at the right edge
+                enemy.y = randint(50, canvas.height - 70);
+            }
+        }
     }
 
     // Ash Pile Bounds
@@ -1012,9 +1079,6 @@ function draw() {
                     if (player.health > 0) {
                         player_hurt_audio.play();
                         player.health -= enemy.damage;
-                        if (player.health == 0) {
-                            death();
-                        }
                     }
                     console.log("An enemy hit you! Player health is now " + player.health)
             }
@@ -1125,6 +1189,15 @@ function activate(event) {  // 🟢
                 }
                 player.shoot = true;
             }
+            break;
+        case "1":
+            player.weapon = "pellet";
+            player.damage = 50;
+            break;
+        case "2":
+            player.weapon = "beam";
+            player.damage = 15;
+            break;
     }
 }
 
@@ -1238,11 +1311,6 @@ function enemy_hit(enemy) {
         enemy.inner_height = 13 + randint(-5,5)
         ash_piles.push(enemy);
         }
-}
-
-// Player Dies
-function death() {
-    moveLeft = moveRight = moveUp = moveDown = shoot = false;
 }
 
 
