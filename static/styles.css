@@ -12,6 +12,7 @@ html#index {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    image-rendering: pixelated;
   }
   
 #canvas body {
@@ -33,7 +34,7 @@ html#index {
   border-image-slice: 1;
   }
   
-#inner {
+canvas {
     grid-column: 2;
     grid-row: 2;
     height: 100vh;
