@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, request
 from database import get_db, close_db
 
 app = Flask(__name__)
@@ -15,3 +15,11 @@ def index():
 @app.route("/play")
 def game():
     return render_template("canvas.html")
+
+@app.route("/store_score", methods=["POST"])
+def store_score():
+    score = int(request.form["score"])
+    enemy_count = int(request.form["enemies_killed"])
+    time_alive = request.form["time_alive"]
+
+    return "success"

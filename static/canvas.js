@@ -2,15 +2,22 @@ let canvas;
 let context;
 let game_animation;
 
-let row_counter = 2;
-let row_count = 32;
-let col_counter = 2;
-let col_count = 64;
-let finished_tile = false;
+let xhttp;
+let form;
+let score;
+let enemies_killed;
+let coins;
+let time_alive;
+
+let score_display;
+let enemy_count_display;
+let time_alive_display;
 
 let now;
 let fpsInterval;  // 60fps
 let then = Date.now();
+
+
 
 const songs = [
     "Arriba Amoeba!.mp3",
@@ -47,6 +54,8 @@ const songs = [
 ];
 let background_song = songs[randint(0, songs.length - 1)];
 
+
+
 let terrain_background = [
     [7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,22,23,37,11,37,35,23,23,35,9,37,24,37,24,22,23,24,9,36,24,23,37,36,9,24,37,35,23,11,35,35,24,36,11,24,10,36,10,35,23,22,37,37,22,36,37,11,11,22,36,24,9,11,36,11,35,9,24,10,36,24,23,23,35,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
     [19,73,86,73,60,86,60,86,73,73,86,73,60,60,73,60,73,86,73,73,73,86,73,86,60,73,86,73,86,73,86,73,73,73,73,60,73,20,20,21,9,24,37,11,10,35,37,22,9,37,24,23,35,24,23,35,37,37,9,10,10,24,11,24,36,9,22,10,35,37,37,37,10,36,9,24,36,36,24,37,23,22,35,23,36,36,23,9,35,35,35,11,35,11,35,22,24,24,9,37,11,10,36,24,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1],
@@ -77,7 +86,6 @@ let terrain_background = [
     [32,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,33,34,73,73,73,73,73,73,73,73,73,73,73,73,73,73,73,73,73,36,9,10,37,37,22,10,36,24,10,9,35,35,35,36,37,22,10,22,22,35,23,36,10,37,36,24,11,23,24,36,35,23,24,24,11,22,11,10,9,36,36,36,11,24,11,23,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1]
     
 ]
-
 let tilesPerRow = 13;
 let tileSize = 16;
 let starting_row = 8;
@@ -85,72 +93,39 @@ let end_row = 27;
 let end_col = 40;
 let shift_down = 24;
 
-let player = {
-    max_health: 300,
-    health: 300,
-    x: "canvas.width / 2 - player.width / 5", // to be set correctly once canvas is defined
-    y: "canvas.height / 2 - player.height / 2", // to be set correctly once canvas is defined
-    inner_x: 9,
-    inner_y: 4,
-    inner_width: 15,
-    inner_height: 14,
-    width: 106,
-    height: 22,
-    frameX: 0,
-    frameY: 1,
-    xChange: 0,
-    yChange: 0,
-    turned: false,
-    shoot: false,
-    weapon: "pellet",
-    damage: 50,
-    immune: false,
-    speed: 0.8,
-    bought_items: []
-};
-let score = 0;
-let coins = 1000;
-let unlocked_weapons = ["pellet"];
 
-let coin_color = "white";
+let player;
+
+let unlocked_weapons;
+
+let coin_color;
 
 // Weapons
-let damage_modifier = 1;
-// Pellet
+let damage_modifier;
+    // Pellet
 let pellet;
-let pellets = [];
+let pellets;
 
-let hearts = [];
+let hearts;
 
-let shop = {
-    x: "canvas.width / 2 - shop.inner_width",
-    y: "-shop.height",
-    inner_x: 56,
-    inner_width: 88,
-    inner_height: 111,
-    width: 200,
-    height: 149,
-    frameX: 0,
-    in_view: "no"
-}
+let shop;
 
 
-let moveLeft = false;
-let moveRight = false;
-let moveUp = false;
-let moveDown = false;
+let moveLeft;
+let moveRight;
+let moveUp;
+let moveDown;
 
-let in_shop = false;
+let in_shop;
 
-let player_counter = 0;
-let collision_counter = 0;
-let unconditional_counter = 0;
-let noted_counter = 0;
-let cooldown = "off";
+let player_counter;
+let collision_counter;
+let unconditional_counter;
+let noted_counter;
+let cooldown;
 
-let winner = false;
-
-let enable_collisions = true;
+// win round
+let winner;
 
 // IMAGES
 let playerImage = new Image();
@@ -164,6 +139,7 @@ let enemyImage_skull = new Image();
 let enemyImage_horse = new Image();
 
 let BackgroundImageTileset = new Image();
+let Sign = new Image();
 
 let ShopImage1 = new Image();
 let ShopInterior1 = new Image();
@@ -191,6 +167,7 @@ let Beam_Weapon_Description = new Image();
 
 // AUDIO
 let background_audio = new Audio();
+let lose_audio = new Audio();
 let player_hurt_audio = new Audio();
 let firing_beam_audio = new Audio();
 let hitmarker_audio = new Audio();
@@ -204,89 +181,30 @@ let purchase_audio = new Audio();
 
 // ENEMIES
 
-let enemies = ["skull", "horse"];
-let active_enemies = [];
-let enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-let enemy_counter = 0;
-let ash_piles = [];
-let enemy_amount = 0;
+let enemies;
+let active_enemies;
+let enemy_randomiser;
+let enemy_counter;
+let ash_piles;
+let enemy_amount;
 
 
 
 
 // SHOP
-let shop1_inventory = [];
-let shop2_inventory = [];
-let shop3_inventory = [];
+let shop1_inventory;
 // Possible Items in Shop
-let fox = {
-    name: "Fox",
-    image: Fox_Image,
-    title_image: Fox_Title,
-    description_image: Fox_Description,
-    x: 300,
-    y: 150,
-    width: 32,
-    height: 32,
-    frameX: 0,
-    frameY: 0,
+let fox;
 
-    xChange: 3,
-    yChange: 3,
-    speed: 0.8,
+let beam_weapon;
 
-    turned: false,
+let extra_heart;
+let extra_heart2;
 
-    shop_x: 85,
-    shop_y: 65,
-    shop_width: 120,
-    shop_height: 120,
-
-    cost: 1000,
-    description: "A friendly fox to keep you company on your adventure. It pounces at enemies when close, dealing a small amount of damage."
-}
-
-let beam_weapon = {
-    name: "Beam",
-    image: Beam_Weapon_Image,
-    title_image: Beam_Title,
-    description_image: Beam_Weapon_Description,
-    width: 500,
-    height: 500,
-    frameX: 0,
-    frameY: 0,
-    shop_x: 90,
-    shop_y: 75,
-    shop_width: 130,
-    shop_height: 130,
-
-    cost: 250,
-    description: "An energy blaster that emits a devastating beam of energy to enemies. Must be charged up before firing."
-}
-
-let extra_heart = {
-    name: "Extra Heart",
-    image: Heart_Image,
-    title_image: Extra_Heart_Title,
-    description_image: Extra_Heart_Description,
-    width: 56,
-    height: 47,
-    frameX: 0,
-    frameY: 0,
-    shop_x: 105,
-    shop_y: 105,
-    shop_width: 85,
-    shop_height: 75,
-
-    cost: 500,
-    description: "An extra heart to increase your max health."
-}
-
-let items = [fox, beam_weapon, extra_heart];
-let available_items = [fox, beam_weapon, extra_heart];
+let items;
+let available_items;
 let selected_item;
-let selected_index = 1;
-
+let selected_index;
 
 document.addEventListener("DOMContentLoaded", init, false)
 
@@ -299,31 +217,197 @@ function init() {
     context.imageSmoothingEnabled = false; // Stops the sprite image from becoming blurry when idle
     
 
-    // Objects that require Positioning relative to Canvas or otherwise
-        // Player
+    score = 0;
+    enemies_killed = 0;
+    coins = 0;
+    time_alive = 0;
+
+
+    player = {
+        max_health: 300,
+        health: 300,
+        x: "canvas.width / 2 - player.width / 5",
+        y: "canvas.height / 2 - player.height / 2",
+        inner_x: 9,
+        inner_y: 4,
+        inner_width: 15,
+        inner_height: 14,
+        width: 106,
+        height: 22,
+        frameX: 0,
+        frameY: 1,
+        xChange: 0,
+        yChange: 0,
+        turned: false,
+        shoot: false,
+        weapon: "pellet",
+        immune: false,
+        speed: 0.8,
+        bought_items: []
+    };
     player.x = canvas.width / 2 - player.width / 5;
     player.y = canvas.height / 2 - player.height / 2;
-        // Shop
-    shop.x = canvas.width / 2 - shop.inner_width; // Centered
-    shop.y = -shop.height; // Just above the canvas, out of sight
+    
+    unlocked_weapons = ["pellet"];
+    
+    coin_color = "white";
+    
+    // Weapons
+    damage_modifier = 100;
+    pellets = [];
+    
+    hearts = [];
+    
+    shop = {
+        x: "canvas.width / 2 - shop.inner_width",
+        y: "-shop.height",
+        inner_x: 56,
+        inner_width: 88,
+        inner_height: 111,
+        width: 200,
+        height: 149,
+        frameX: 0,
+        in_view: "no"
+    }
+    shop.x = canvas.width / 2 - shop.inner_width;
+    shop.y = -shop.height;
+    
+    
+    moveLeft = false;
+    moveRight = false;
+    moveUp = false;
+    moveDown = false;
+    
+    in_shop = false;
+    
+    player_counter = 0;
+    collision_counter = 0;
+    unconditional_counter = 0;
+    noted_counter = 0;
+    cooldown = "off";
+    
+    winner = false;
+    
+    // ENEMIES
+    
+    enemies = ["skull", "horse"];
+    active_enemies = [];
+    enemy_randomiser = enemies[randint(0, enemies.length - 1)];
+    enemy_counter = 0;
+    ash_piles = [];
+    enemy_amount = 0;
+    
+    
+    
+    
+    // SHOP
+    shop1_inventory = [];
+    // Possible Items in Shop
+    fox = {
+        name: "Fox",
+        image: Fox_Image,
+        title_image: Fox_Title,
+        description_image: Fox_Description,
+        x: 300,
+        y: 150,
+        width: 32,
+        height: 32,
+        frameX: 0,
+        frameY: 0,
+    
+        xChange: 3,
+        yChange: 3,
+        speed: 0.8,
+    
+        turned: false,
+    
+        shop_x: 85,
+        shop_y: 65,
+        shop_width: 120,
+        shop_height: 120,
+    
+        cost: 1000,
+        description: "A friendly fox to keep you company on your adventure. It pounces at enemies when close, dealing a small amount of damage."
+    }
+    
+    beam_weapon = {
+        name: "Beam",
+        image: Beam_Weapon_Image,
+        title_image: Beam_Title,
+        description_image: Beam_Weapon_Description,
+        width: 500,
+        height: 500,
+        frameX: 0,
+        frameY: 0,
+        shop_x: 90,
+        shop_y: 75,
+        shop_width: 130,
+        shop_height: 130,
+    
+        cost: 250,
+        description: "An energy blaster that emits a devastating beam of energy to enemies. Must be charged up before firing."
+    }
+    
+    extra_heart = {
+        name: "Extra Heart",
+        image: Heart_Image,
+        title_image: Extra_Heart_Title,
+        description_image: Extra_Heart_Description,
+        width: 56,
+        height: 47,
+        frameX: 0,
+        frameY: 0,
+        shop_x: 105,
+        shop_y: 105,
+        shop_width: 85,
+        shop_height: 75,
+    
+        cost: "player.max_health * 2 * (player.health/player.max_health)",
+        description: "An extra heart to increase your max health."
+    }
+    extra_heart2 = {
+        name: "Extra Heart2",
+        image: Heart_Image,
+        title_image: Extra_Heart_Title,
+        description_image: Extra_Heart_Description,
+        width: 56,
+        height: 47,
+        frameX: 0,
+        frameY: 0,
+        shop_x: 105,
+        shop_y: 105,
+        shop_width: 85,
+        shop_height: 75,
+    
+        cost: "player.max_health * 2 * (player.health/player.max_health)",
+        description: "An extra heart to increase your max health."
+    }
+    
+    items = [extra_heart, extra_heart2, fox, beam_weapon];
+    available_items = [extra_heart, extra_heart2, fox, beam_weapon];
+    selected_index = 1;
 
 
     for (let times = 0; times < available_items.length + 2; ++times) { // 3 items per shop
         let chosen_item = available_items[randint(0, available_items.length - 1)]; // Pick random item
         shop1_inventory.push(chosen_item); // add to shop's inventory
         let index = available_items.indexOf(chosen_item); // find the index of this item in available_items list
-        available_items.splice(index, 1); // remove this item from the choice pool to prevent the same item from being offered twice
+        available_items.splice(index, 1); // remove this item from the choice pool to prevent the same item from being offered twice, save for the extra_hearts
     }
 
     // console.log("Shop 1's Inventory: " + shop1_inventory[0].name + ", " + shop1_inventory[1].name + ", " + shop1_inventory[2].name)
 
-
+    // Movement
     window.addEventListener("keydown", activate, false)
     window.addEventListener("keyup", deactivate, false)
 
+    // Form Submission on Defeat
+    form = document.querySelector("form");
+    form.addEventListener("submit", store_data, false);
 
     load_assets([
         { "var": BackgroundImageTileset, "url": "/static/Assets/Tileset/tiles.png" },
+        { "var": Sign, "url": "/static/Assets/Tileset/next_stage_sign.png" },
 
         { "var": playerImage, "url": "/static/Assets/Player/player.png" },
         { "var": coinImage, "url": "/static/Assets/Player/coin.png" },
@@ -358,6 +442,7 @@ function init() {
         { "var": Beam_Title, "url": "/static/Assets/Player/Beam_Title.png"},
 
         { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
+        { "var": lose_audio, "url": "/static/Assets/Audio/Doors OST Curious Light.mp3"},
         { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
         { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
         { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"},
@@ -368,16 +453,16 @@ function init() {
 
     // Accompanying Developer Music
     background_audio.currentTime = randint(0, 60);
-    // background_audio.play();
-    background_audio.addEventListener('ended', () => {
+    background_audio.play();
+    background_audio.addEventListener('ended', function() {
         background_audio.currentTime = 0;
         background_audio.play();
     });
     console.log("Playing " + background_song);
+
+
+    setInterval(incrementSeconds, 1000);
 }
-
-
-
 
 
 
@@ -387,7 +472,10 @@ function init() {
 
 function draw() {
     game_animation = window.requestAnimationFrame(draw);
-    
+    if (!winner && player.health > 0) {
+        score += 1;
+    }
+
     fpsInterval = 50;
     let now = Date.now();
     let elapsed = now - then;
@@ -596,6 +684,8 @@ function draw() {
 
     // Draw Interior of shop + items
     if (in_shop == true) {
+        extra_heart.cost = player.max_health * 2 * (player.health/player.max_health);
+        extra_heart2.cost = player.max_health * 2 * (player.health/player.max_health);
         selected_item = shop1_inventory[selected_index];
         context.drawImage(ShowroomImage, 0, 0, canvas.width, canvas.height)
         if (unconditional_counter >= 70) {  // Comes first so that background of shop is in the background, not in front of the items
@@ -939,17 +1029,7 @@ function draw() {
     }
     // Dead
     if (player.health <= 0) {
-        moveLeft = moveRight = moveUp = moveDown = player.shoot = false;
-        player.frameY = 4;
-        if (player.turned) {
-            player.frameY = 9;
-        }
-        if (player.frameX < 4 && unconditional_counter % 6 == 0) {
-            player.frameX += 1;
-        }
-        if (unconditional_counter % 45 == 0) {
-            player.frameX = 0;
-        }
+        death();
     }
     // Attacked
     else if (player.immune) {
@@ -968,9 +1048,17 @@ function draw() {
 
 
     // Pet Movement
+    pet_movement:
     if (player.bought_items.includes("Fox")) {
+        // Death Animation
+        if (player.health <= 0) {
+            fox.frameY = 6;
+            if (fox.turned) fox.frameY = 13;
+            if (unconditional_counter % 10 == 0 && fox.frameX < 6) fox.frameX = (fox.frameX + 1);
+            break pet_movement;
+        }
         // Moving animation
-        if (((player.x + player.inner_x) - fox.x >= 30) || ((player.x + player.inner_x) - fox.x <= -20) || ((player.y + player.inner_y) - (fox.y + fox.height) >= 5) || (fox.y - (player.y + player.inner_y + player.inner_height) >= -15)) {
+        else if (((player.x + player.inner_x) - fox.x >= 30) || ((player.x + player.inner_x) - fox.x <= -20) || ((player.y + player.inner_y) - (fox.y + fox.height) >= 5) || (fox.y - (player.y + player.inner_y + player.inner_height) >= -15)) {
             if (unconditional_counter % 2 == 0) fox.frameX = (fox.frameX + 1) % 8;
             fox.xChange += 0.1;
             fox.yChange += 0.1;
@@ -983,6 +1071,7 @@ function draw() {
             fox.xChange = 0.5;
             fox.yChange = 0.5;
         }
+
         // Face fox left
         if (fox.x > player.x + player.inner_x + player.inner_width) {
             turn("left", fox);
@@ -1025,6 +1114,9 @@ function draw() {
     if (player.weapon == "pellet") {
         for (let pellet of pellets) {
             pellet.x += pellet.xChange;
+            pellet.damage = pellet.damage * 0.95 * damage_modifier;
+            pellet.width -= 0.02;
+            pellet.height -= 0.02;
             for (let enemy of active_enemies) {
                 if (
                     ((!player.turned && 
@@ -1310,6 +1402,9 @@ function draw() {
             shop.y += 1.8;
             shop.in_view = "yes"
         }
+        else {
+            context.drawImage(Sign, 580, 250)
+        }
     }
 
     unconditional_counter += 1;
@@ -1378,7 +1473,8 @@ function activate(event) {  // 🟢
                         y: player.y + player.inner_y + player.inner_height / 2,
                         width: 2,
                         height: 2,
-                        xChange: 5
+                        xChange: 10,
+                        damage: 50
                     }
                     if (player.turned) { // Change direction of particle if facing left
                         pellet.xChange = -pellet.xChange;
@@ -1406,7 +1502,7 @@ function activate(event) {  // 🟢
             
             switch (player.weapon) {
                 case "pellet":
-                    player.damage = 50 * damage_modifier;
+                    pellet.damage = 50 * damage_modifier;
                     break;
                 case "beam":
                     player.damage = 15 * damage_modifier;
@@ -1482,12 +1578,21 @@ function turn(position, object) {
 
 // Player hits Enemy
 function enemy_hit(enemy) {
+
     console.log("DIRECT HIT!");
+
     hitmarker_audio.currentTime = 0;
     hitmarker_audio.play();
+
     score += enemy.hit_score;
-    enemy.health -= player.damage;
-    if (enemy.health <= 0) {
+
+    if (player.weapon == "pellet") {
+        enemy.health -= pellet.damage;
+    }
+    else enemy.health -= player.damage;
+
+    if (enemy.health <= 0) { // killed enemy
+        enemies_killed += 1;
         score += enemy.kill_score;
         coins += enemy.coin_value;
         let index = active_enemies.indexOf(enemy);
@@ -1513,7 +1618,7 @@ function enemy_hit(enemy) {
 
 function purchase(item) {
     player.bought_items.push(item.name);
-    if (item == extra_heart) {
+    if (item == extra_heart || item == extra_heart2) {
         player.max_health += 100;
         player.health += 100;
     }
@@ -1523,13 +1628,84 @@ function purchase(item) {
 }
 
 
+function death() {
+    background_audio.pause();
+    moveLeft = moveRight = moveUp = moveDown = player.shoot = false;
+    player.frameY = 4;
+    if (player.turned) {
+        player.frameY = 9;
+    }
+    if (player.frameX < 4 && unconditional_counter % 6 == 0) {
+        player.frameX += 1;
+    }
+    if (unconditional_counter % 45 == 0) {
+        player.frameX = 0;
+    }
+    if (unconditional_counter % 50 == 0) {
+        lose_audio.play()
+    }
+
+    let game_over_screen = document.getElementById("game_over"); // if it's not the first time a player has retried the game
+    game_over_screen.style.cssText = "z-index: 1; animation: game_over_animation 10s; animation-fill-mode: forwards;"
+
+    let retry_button = document.querySelector("#game_over > button");
+    retry_button.addEventListener("click", function() {
+        game_over_screen.style.cssText = "";
+        location.href = "/play";
+    })
+
+
+    if (score_display == undefined || enemy_count_display == undefined || time_alive_display == undefined) {
+        score_display = document.getElementById("score");
+        score_display.innerText = "Score: " + score;
+
+        enemy_count_display = document.getElementById("enemies_killed");
+        enemy_count_display.innerText = "Enemies Killed: " + enemies_killed;
+
+        time_alive_display = document.getElementById("time_alive");
+        time_alive_display.innerText = "Time Alive: " + (Math.floor(time_alive / 60) + "mins " + time_alive % 60 + "secs");
+    }
+
+}
+
+function store_data(event) {
+    let data = new FormData();
+    data.append("score", score);
+    data.append("enemies_killed", enemies_killed);
+    data.append("time_alive", Math.floor(time_alive / 60) + "mins " + time_alive % 60 + "secs");
+
+    xhttp = new XMLHttpRequest();
+    xhttp.addEventListener("readystatechange", handle_response, false);
+    xhttp.open("POST", "/store_score", true);
+    xhttp.send(data);
+
+    event.preventDefault();
+}
+
+function handle_response() {
+    // Response Arrived?
+    if (xhttp.readyState === 4) {
+        // Request Successful?
+        if (xhttp.status === 200) {
+            if (xhttp.responseText === "success") {
+                console.log("Data was stored successfully.");
+                document.getElementById("tick").style.cssText = "opacity: 1;"
+                document.querySelector("form > input:nth-of-type(2)").setAttribute("disabled", true);
+            }
+            else {
+                console.log("Error. Data was not stored in database.")
+            }
+        }
+    }
+}
 
 
 
 
-
-
-
+function incrementSeconds() {
+    if (player.health > 0) time_alive += 1;
+    else console.log(Math.floor(time_alive / 60) + "mins " + time_alive % 60 + "secs")
+}
 
 
 function load_assets(assets, callback_function) {  // Ensures assets (images/audio/etc.) are loaded before script is run

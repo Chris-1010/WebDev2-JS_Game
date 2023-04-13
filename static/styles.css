@@ -14,6 +14,102 @@ html#index {
     box-sizing: border-box;
     image-rendering: pixelated;
   }
+
+#game_over > a {
+    grid-row: 3;
+    grid-column: 2/4;
+    text-align: center;
+    align-self: end;
+    font-size: 2em;
+    color: wheat;
+    margin-bottom: 10px;
+}
+
+form > h2 {
+    grid-row: 1;
+    text-align: center;
+    align-self: center;
+    font-size: 3em;
+    color: cyan;
+}
+
+form > input:first-of-type {
+    grid-row: 3;
+    font-size: 2em;
+    text-align: center;
+    font-weight: 700;
+    width: 80%;
+    justify-self: center;
+    border-radius: 1em;
+}
+
+form > input:nth-of-type(2) {
+    grid-row: 4;
+    height: fit-content;
+    width: 70%;
+    align-self: center;
+    justify-self: center;
+    font-size: 2em;
+    padding: 10px 0;
+    border-radius: 20px;
+    background: white;
+    border: 5px solid blue;
+    border-style: outset;
+    transition: 1s;
+}
+
+form > input:nth-of-type(2):active, #game_over > button:active {
+    border-style: inset;
+    transform: scale(0.97);
+}
+
+form > label {
+    grid-row: 2;
+    align-self: center;
+    text-align: center;
+    font-size: 3em;
+}
+
+#game_over > button {
+    grid-column: 2/4;
+    grid-row: 2/4;
+    justify-self: center;
+    height: fit-content;
+    align-self: center;
+    padding: 0.5em 3em;
+    border-radius: 4em;
+    font-size: 3em;
+    background: radial-gradient(red, transparent);
+    color: white;
+}
+
+#game_over > h1 {
+    grid-column: 1/5;
+    grid-row: 1;
+    text-align: center;
+    align-self: center;
+    font-size: 6em;
+    color: red;
+    -webkit-text-stroke: 3px white;
+}
+
+#game_over > form {
+    grid-column: 1;
+    grid-row: 1/4;
+    display: grid;
+    grid-template-rows: 2fr 1fr 1fr 2fr;
+}
+
+#score {
+    grid-row: 1;
+}
+
+#game_over > h2 {
+    grid-column: 4;
+    align-self: center;
+    text-align: center;
+    font-size: 2em;
+}
   
 #canvas body {
   display: grid;
@@ -23,7 +119,7 @@ html#index {
   align-items: center;
   justify-items: center;
   width: 100%;
-  background: linear-gradient(120deg,black,rebeccapurple,cyan);
+  background: linear-gradient(120deg,black,rebeccapurple, red);
   /* border: 20px solid; */
   border-bottom-width: 50px;
   /* content: "Hello";
@@ -113,4 +209,42 @@ section#leaderboard {
 #leaderboard th, #leaderboard td {
     border-right: 1px solid white;
     padding: 10px 20px;
+}
+
+#game_over {
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    position: absolute;
+    width: 100vw;
+    height: 50vh;
+    top: 25%;
+    background: #0000006b;
+    backdrop-filter: blur(5px);
+    /* animation: game_over_animation 10s; */
+    opacity: 0;
+    z-index: -1;
+    font-family: arial;
+    color: white;
+}
+
+@keyframes game_over_animation {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+#tick {
+    opacity: 0;
+    width: 50px;
+    position: absolute;
+    top: 275px;
+    left: 336px;
+    transition: 1s;
 }
