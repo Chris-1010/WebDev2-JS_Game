@@ -1,11 +1,17 @@
+:root {
+    --pixel: 1;
+}
+
 html {
     height: 100vh;
     width: 100vw;
   }
 
 html#index {
-    background: radial-gradient(black, red, blue, orange, lime, black);
+    /* background: repeating-linear-gradient(var(--degree), black, blue var(--pixel)); */
+    background: repeating-radial-gradient(blue, red, purple, brown, blue, red, navy, crimson, blue, red var(--pixel));
     font-family: arial;
+    color: white;
 }
   
   * {
@@ -14,6 +20,14 @@ html#index {
     box-sizing: border-box;
     image-rendering: pixelated;
   }
+
+h2#how_to_play {
+    text-align: center;
+    grid-row: 3;
+    grid-column: 1/4;
+    font-size: 2em;
+    /* color: white; */
+}
 
 #game_over > a {
     grid-row: 3;
@@ -139,7 +153,7 @@ canvas {
 
 #index body {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-columns: 3fr 4fr 3fr;
     grid-template-rows: 1fr 2fr 1fr;
     height: 100%;
     align-items: center;
@@ -153,17 +167,17 @@ canvas {
 }
 
 #index body > a {
+    backdrop-filter: blur(var(--pixel));
     grid-row: 2;
     grid-column: 2;
     text-align: center;
     font-size: 4em;
     text-decoration: none;
-    color: blue;
+    color: white;
     border: 25px solid white;
     width: fit-content;
     justify-self: center;
     padding: 0 1em;
-    background: linear-gradient(to bottom, red, orange, orange, red);
     transition: 0.5s;
 }
 
@@ -181,6 +195,8 @@ section#leaderboard {
     display: grid;
     grid-template-rows: 50px auto;
     border-radius: 2em;
+    color: black;
+    overflow-y: scroll;
 }
 
 #leaderboard > h1 {
@@ -197,13 +213,14 @@ section#leaderboard {
 
 #leaderboard tbody {
     display: flex;
+    flex-direction: column;
     height: 100%;
 }
 
 #leaderboard tr {
-    display: flex;
-    justify-content: space-between
-    ;width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
 }
 
 #leaderboard th, #leaderboard td {
