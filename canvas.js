@@ -400,55 +400,50 @@ function init() {
     window.addEventListener("keydown", activate, false)
     window.addEventListener("keyup", deactivate, false)
 
-    // Form Submission on Defeat
-    form = document.querySelector("form");
-    username = document.querySelector("form > input:first-of-type");
-    form.addEventListener("submit", store_data, false);
-
     load_assets([
-        { "var": BackgroundImageTileset, "url": "/static/Assets/Tileset/tiles.png" },
-        { "var": SignImage, "url": "/static/Assets/Tileset/next_stage_sign.png" },
+        { "var": BackgroundImageTileset, "url": "Assets/Tileset/tiles.png" },
+        { "var": SignImage, "url": "Assets/Tileset/next_stage_sign.png" },
 
-        { "var": playerImage, "url": "/static/Assets/Player/player.png" },
-        { "var": coinImage, "url": "/static/Assets/Player/coin.png" },
+        { "var": playerImage, "url": "Assets/Player/player.png" },
+        { "var": coinImage, "url": "Assets/Player/coin.png" },
 
-        { "var": enemy_healthbar_frame, "url": "/static/Assets/Player/Enemy Healthbar Frame.png"},
-        { "var": enemy_healthbar, "url": "/static/Assets/Player/Enemy Healthbar.png"},
+        { "var": enemy_healthbar_frame, "url": "Assets/Player/Enemy Healthbar Frame.png"},
+        { "var": enemy_healthbar, "url": "Assets/Player/Enemy Healthbar.png"},
 
-        { "var": enemyImage_skull, "url": "/static/Assets/Enemies/fire-skull.png" },
-        { "var": enemyImage_horse, "url": "/static/Assets/Enemies/nightmare_horse.png" },
+        { "var": enemyImage_skull, "url": "Assets/Enemies/fire-skull.png" },
+        { "var": enemyImage_horse, "url": "Assets/Enemies/nightmare_horse.png" },
 
-        { "var": AshImage, "url": "/static/Assets/Enemies/Ash.png" },
+        { "var": AshImage, "url": "Assets/Enemies/Ash.png" },
 
-        { "var": ShopImage1, "url": "/static/Assets/Tileset/Shop1.png" },
-        { "var": ShopInterior1, "url": "/static/Assets/Tileset/Shop1_BG.png" },
-        { "var": ShowroomImage, "url": "/static/Assets/Tileset/black spotlight.png" },
-        { "var": Podium, "url": "/static/Assets/Tileset/Shop_Podium.png" },
-        { "var": Selected_Podium, "url": "/static/Assets/Tileset/Shop_Podium_Selected.png" },
+        { "var": ShopImage1, "url": "Assets/Tileset/Shop1.png" },
+        { "var": ShopInterior1, "url": "Assets/Tileset/Shop1_BG.png" },
+        { "var": ShowroomImage, "url": "Assets/Tileset/black spotlight.png" },
+        { "var": Podium, "url": "Assets/Tileset/Shop_Podium.png" },
+        { "var": Selected_Podium, "url": "Assets/Tileset/Shop_Podium_Selected.png" },
 
-        { "var": Spacebar, "url": "/static/Assets/Player/spacebar_icon.png"},
-        { "var": Enter, "url": "/static/Assets/Player/enter_icon.png"},
+        { "var": Spacebar, "url": "Assets/Player/spacebar_icon.png"},
+        { "var": Enter, "url": "Assets/Player/enter_icon.png"},
 
-        { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
-        { "var": Extra_Heart_Description, "url": "/static/Assets/Player/Extra_Heart_Description.png"},
-        { "var": Extra_Heart_Title, "url": "/static/Assets/Player/Extra_Heart_Title.png" },
+        { "var": Heart_Image, "url": "Assets/Player/hearts.png" },
+        { "var": Extra_Heart_Description, "url": "Assets/Player/Extra_Heart_Description.png"},
+        { "var": Extra_Heart_Title, "url": "Assets/Player/Extra_Heart_Title.png" },
 
-        { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
-        { "var": Fox_Description, "url": "/static/Assets/Player/Fox_Description.png"},
-        { "var": Fox_Title, "url": "/static/Assets/Player/Fox_Title.png"},
+        { "var": Fox_Image, "url": "Assets/Player/Fox Sprite Sheet.png"},
+        { "var": Fox_Description, "url": "Assets/Player/Fox_Description.png"},
+        { "var": Fox_Title, "url": "Assets/Player/Fox_Title.png"},
 
-        { "var": Beam_Weapon_Image, "url": "/static/Assets/Player/Energy Beam Weapon.png"},
-        { "var": Beam_Weapon_Description, "url": "/static/Assets/Player/Beam_Description.png"},
-        { "var": Beam_Title, "url": "/static/Assets/Player/Beam_Title.png"},
+        { "var": Beam_Weapon_Image, "url": "Assets/Player/Energy Beam Weapon.png"},
+        { "var": Beam_Weapon_Description, "url": "Assets/Player/Beam_Description.png"},
+        { "var": Beam_Title, "url": "Assets/Player/Beam_Title.png"},
 
-        { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
-        { "var": lose_audio, "url": "/static/Assets/Audio/Doors OST Curious Light.mp3"},
-        { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
-        { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
-        { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"},
-        { "var": spotlight_audio, "url": "/static/Assets/Audio/SFX/Spotlight.mp3"},
-        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"},
-        { "var": purchase_audio, "url": "/static/Assets/Audio/SFX/Purchase.wav"}
+        { "var": background_audio, "url": "Assets/Audio/" + background_song},
+        { "var": lose_audio, "url": "Assets/Audio/Doors OST Curious Light.mp3"},
+        { "var": player_hurt_audio, "url": "Assets/Audio/SFX/hurt.wav"},
+        { "var": firing_beam_audio, "url": "Assets/Audio/SFX/Firing Beam.mp3"},
+        { "var": hitmarker_audio, "url": "Assets/Audio/SFX/Hitmarker.wav"},
+        { "var": spotlight_audio, "url": "Assets/Audio/SFX/Spotlight.mp3"},
+        { "var": shop_audio, "url": "Assets/Audio/Raving_Rabbids_OST.mp3"},
+        { "var": purchase_audio, "url": "Assets/Audio/SFX/Purchase.wav"}
     ], draw);
 
     // Accompanying Developer Music
@@ -1669,7 +1664,7 @@ function death() {
     retry_button.addEventListener("click", function() {
         game_over_screen.style.cssText = "";
         lose_audio.pause();
-        location.href = "/play";
+        location.href = "canvas.html";
     })
 
 
@@ -1684,38 +1679,6 @@ function death() {
         time_alive_display.innerText = "Time Alive: " + (Math.floor(time_alive / 60) + "mins " + time_alive % 60 + "secs");
     }
 
-}
-
-function store_data(event) {
-    let data = new FormData();
-    data.append("name", username.value);
-    data.append("score", score);
-    data.append("enemies_killed", enemies_killed);
-    data.append("time_alive", Math.floor(time_alive / 60) + "mins " + time_alive % 60 + "secs");
-
-    xhttp = new XMLHttpRequest();
-    xhttp.addEventListener("readystatechange", handle_response, false);
-    xhttp.open("POST", "/store_score", true);
-    xhttp.send(data);
-
-    event.preventDefault();
-}
-
-function handle_response() {
-    // Response Arrived?
-    if (xhttp.readyState === 4) {
-        // Request Successful?
-        if (xhttp.status === 200) {
-            if (xhttp.responseText === "success") {
-                console.log("Data was stored successfully.");
-                document.getElementById("tick").style.cssText = "opacity: 1;"
-                document.querySelector("form > input:nth-of-type(2)").setAttribute("disabled", true);
-            }
-            else {
-                console.log("Error. Data was not stored in database.")
-            }
-        }
-    }
 }
 
 

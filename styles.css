@@ -186,48 +186,6 @@ canvas {
     border: 5px solid cyan;
 }
 
-section#leaderboard {
-    grid-column: 3;
-    grid-row: 2;
-    height: 100%;
-    background: wheat;
-    text-align: center;
-    display: grid;
-    grid-template-rows: 50px auto;
-    border-radius: 2em;
-    color: black;
-    overflow-y: scroll;
-}
-
-#leaderboard > h1 {
-    grid-row: 1;
-    align-self: center;
-}
-
-#leaderboard table {
-    align-self: start;
-    grid-row: 2;
-    background: #ffd079;
-    height: 100%;
-}
-
-#leaderboard tbody {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-#leaderboard tr {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    width: 100%;
-}
-
-#leaderboard th, #leaderboard td {
-    border-right: 1px solid white;
-    padding: 10px 20px;
-}
-
 #game_over {
     display: grid;
     grid-template-rows: repeat(3, 1fr);
