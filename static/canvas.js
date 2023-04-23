@@ -406,49 +406,49 @@ function init() {
     form.addEventListener("submit", store_data, false);
 
     load_assets([
-        { "var": BackgroundImageTileset, "url": "/static/Assets/Tileset/tiles.png" },
-        { "var": SignImage, "url": "/static/Assets/Tileset/next_stage_sign.png" },
+        { "var": BackgroundImageTileset, "url": "static/Assets/Tileset/tiles.png" },
+        { "var": SignImage, "url": "static/Assets/Tileset/next_stage_sign.png" },
 
-        { "var": playerImage, "url": "/static/Assets/Player/player.png" },
-        { "var": coinImage, "url": "/static/Assets/Player/coin.png" },
+        { "var": playerImage, "url": "static/Assets/Player/player.png" },
+        { "var": coinImage, "url": "static/Assets/Player/coin.png" },
 
-        { "var": enemy_healthbar_frame, "url": "/static/Assets/Player/Enemy Healthbar Frame.png"},
-        { "var": enemy_healthbar, "url": "/static/Assets/Player/Enemy Healthbar.png"},
+        { "var": enemy_healthbar_frame, "url": "static/Assets/Player/Enemy Healthbar Frame.png"},
+        { "var": enemy_healthbar, "url": "static/Assets/Player/Enemy Healthbar.png"},
 
-        { "var": enemyImage_skull, "url": "/static/Assets/Enemies/fire-skull.png" },
-        { "var": enemyImage_horse, "url": "/static/Assets/Enemies/nightmare_horse.png" },
+        { "var": enemyImage_skull, "url": "static/Assets/Enemies/fire-skull.png" },
+        { "var": enemyImage_horse, "url": "static/Assets/Enemies/nightmare_horse.png" },
 
-        { "var": AshImage, "url": "/static/Assets/Enemies/Ash.png" },
+        { "var": AshImage, "url": "static/Assets/Enemies/Ash.png" },
 
-        { "var": ShopImage1, "url": "/static/Assets/Tileset/Shop1.png" },
-        { "var": ShopInterior1, "url": "/static/Assets/Tileset/Shop1_BG.png" },
-        { "var": ShowroomImage, "url": "/static/Assets/Tileset/black spotlight.png" },
-        { "var": Podium, "url": "/static/Assets/Tileset/Shop_Podium.png" },
-        { "var": Selected_Podium, "url": "/static/Assets/Tileset/Shop_Podium_Selected.png" },
+        { "var": ShopImage1, "url": "static/Assets/Tileset/Shop1.png" },
+        { "var": ShopInterior1, "url": "static/Assets/Tileset/Shop1_BG.png" },
+        { "var": ShowroomImage, "url": "static/Assets/Tileset/black spotlight.png" },
+        { "var": Podium, "url": "static/Assets/Tileset/Shop_Podium.png" },
+        { "var": Selected_Podium, "url": "static/Assets/Tileset/Shop_Podium_Selected.png" },
 
-        { "var": Spacebar, "url": "/static/Assets/Player/spacebar_icon.png"},
-        { "var": Enter, "url": "/static/Assets/Player/enter_icon.png"},
+        { "var": Spacebar, "url": "static/Assets/Player/spacebar_icon.png"},
+        { "var": Enter, "url": "static/Assets/Player/enter_icon.png"},
 
-        { "var": Heart_Image, "url": "/static/Assets/Player/hearts.png" },
-        { "var": Extra_Heart_Description, "url": "/static/Assets/Player/Extra_Heart_Description.png"},
-        { "var": Extra_Heart_Title, "url": "/static/Assets/Player/Extra_Heart_Title.png" },
+        { "var": Heart_Image, "url": "static/Assets/Player/hearts.png" },
+        { "var": Extra_Heart_Description, "url": "static/Assets/Player/Extra_Heart_Description.png"},
+        { "var": Extra_Heart_Title, "url": "static/Assets/Player/Extra_Heart_Title.png" },
 
-        { "var": Fox_Image, "url": "/static/Assets/Player/Fox Sprite Sheet.png"},
-        { "var": Fox_Description, "url": "/static/Assets/Player/Fox_Description.png"},
-        { "var": Fox_Title, "url": "/static/Assets/Player/Fox_Title.png"},
+        { "var": Fox_Image, "url": "static/Assets/Player/Fox Sprite Sheet.png"},
+        { "var": Fox_Description, "url": "static/Assets/Player/Fox_Description.png"},
+        { "var": Fox_Title, "url": "static/Assets/Player/Fox_Title.png"},
 
-        { "var": Beam_Weapon_Image, "url": "/static/Assets/Player/Energy Beam Weapon.png"},
-        { "var": Beam_Weapon_Description, "url": "/static/Assets/Player/Beam_Description.png"},
-        { "var": Beam_Title, "url": "/static/Assets/Player/Beam_Title.png"},
+        { "var": Beam_Weapon_Image, "url": "static/Assets/Player/Energy Beam Weapon.png"},
+        { "var": Beam_Weapon_Description, "url": "static/Assets/Player/Beam_Description.png"},
+        { "var": Beam_Title, "url": "static/Assets/Player/Beam_Title.png"},
 
-        { "var": background_audio, "url": "/static/Assets/Audio/" + background_song},
-        { "var": lose_audio, "url": "/static/Assets/Audio/Doors OST Curious Light.mp3"},
-        { "var": player_hurt_audio, "url": "/static/Assets/Audio/SFX/hurt.wav"},
-        { "var": firing_beam_audio, "url": "/static/Assets/Audio/SFX/Firing Beam.mp3"},
-        { "var": hitmarker_audio, "url": "/static/Assets/Audio/SFX/Hitmarker.wav"},
-        { "var": spotlight_audio, "url": "/static/Assets/Audio/SFX/Spotlight.mp3"},
-        { "var": shop_audio, "url": "/static/Assets/Audio/Raving_Rabbids_OST.mp3"},
-        { "var": purchase_audio, "url": "/static/Assets/Audio/SFX/Purchase.wav"}
+        { "var": background_audio, "url": "static/Assets/Audio/" + background_song},
+        { "var": lose_audio, "url": "static/Assets/Audio/Doors OST Curious Light.mp3"},
+        { "var": player_hurt_audio, "url": "static/Assets/Audio/SFX/hurt.wav"},
+        { "var": firing_beam_audio, "url": "static/Assets/Audio/SFX/Firing Beam.mp3"},
+        { "var": hitmarker_audio, "url": "static/Assets/Audio/SFX/Hitmarker.wav"},
+        { "var": spotlight_audio, "url": "static/Assets/Audio/SFX/Spotlight.mp3"},
+        { "var": shop_audio, "url": "static/Assets/Audio/Raving_Rabbids_OST.mp3"},
+        { "var": purchase_audio, "url": "static/Assets/Audio/SFX/Purchase.wav"}
     ], draw);
 
     // Accompanying Developer Music
@@ -1669,7 +1669,7 @@ function death() {
     retry_button.addEventListener("click", function() {
         game_over_screen.style.cssText = "";
         lose_audio.pause();
-        location.href = "/play";
+        location.href = "play";
     })
 
 
@@ -1695,7 +1695,7 @@ function store_data(event) {
 
     xhttp = new XMLHttpRequest();
     xhttp.addEventListener("readystatechange", handle_response, false);
-    xhttp.open("POST", "/store_score", true);
+    xhttp.open("POST", "store_score", true);
     xhttp.send(data);
 
     event.preventDefault();

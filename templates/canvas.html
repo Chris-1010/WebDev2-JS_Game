@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <title>Science & Guns!</title>
     <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" />
-    <!-- <link rel="stylesheet" href="/static/styles.css" /> -->
-    <link rel="icon" href="{{url_for('static', filename='/Assets/Player/Favicon.png')}}" />
-    <!-- <link rel="icon" href="/static/Assets/Player/Favicon.png" /> -->
+    <link rel="icon" href="{{url_for('static', filename='Favicon.png')}}" />
 </head>
 
 
@@ -19,21 +17,20 @@
         <h2 id="time_alive"></h2>
 
         <button>Try Again</button>
-        <a href="/">Leaderboard</a>
+        <a href="{{url_for('index')}}">Leaderboard</a>
         
         <form>
             <h2>Submit Score</h2>
             <label for="name">Name</label>
             <input type="text" name="name" id="name_field" />
             <input type="submit" />
-            <img id="tick" src="/static/Assets/Player/tick.png"/>
+            <img id="tick" src="{{url_for('static', filename='Assets/Player/tick.png')}}"/>
         </form>
 
     </section>
     <canvas></canvas>
     
     <script type="module" src="{{url_for('static', filename='canvas.js')}}"></script>
-    <!-- <script type="module" src="/static/canvas.js"></script> -->
 
 </body>
 
