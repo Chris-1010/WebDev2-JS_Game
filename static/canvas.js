@@ -1,6 +1,9 @@
 let canvas;
 let context;
 let game_animation;
+
+let mode = "normal";
+
 animate_indexPage();
 
 let xhttp;
@@ -10,6 +13,34 @@ let score;
 let enemies_killed;
 let coins;
 let time_alive;
+
+let heart_index = 0;
+
+
+let mode_switcher = document.querySelector("div");
+if (mode_switcher != null) {
+    mode_switcher.addEventListener("click", function() {
+        xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "change_mode", true);
+        xhttp.send()
+
+        if (mode == "normal") {
+            mode_switcher.style.setProperty("--circle_color", "orange");
+            mode_switcher.style.setProperty("--Xtranslate", "300%");
+            document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 200px";
+            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 200px";
+            mode = "time_attack"
+        }
+        else if (mode == "time_attack") {
+            mode_switcher.style.setProperty("--circle_color", "lime");
+            mode_switcher.style.setProperty("--Xtranslate", "0");
+            document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 0";
+            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 0";
+            mode = "normal"
+        }
+        console.log("mode is now " + mode)
+    })
+}
 
 let score_display;
 let enemy_count_display;
@@ -72,6 +103,7 @@ let next_round;
 
 
 let player;
+let health_lost_count = 0;
 
 let unlocked_weapons;
 
@@ -162,7 +194,6 @@ let purchase_audio = new Audio();
 let enemies;
 let active_enemies;
 let enemy_randomiser;
-let enemy_counter;
 let ash_piles;
 let enemy_amount;
 
@@ -196,6 +227,24 @@ function init() {
     context = canvas.getContext("2d");
     context.imageSmoothingEnabled = false; // Stops the sprite image from becoming blurry when idle
     
+    xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "get_mode", true);
+    xhttp.send();
+    xhttp.addEventListener("readystatechange", function() {
+        if (xhttp.readyState === 4) {
+            if (xhttp.status === 200) {
+                mode = xhttp.responseText;
+                console.log("reached the python function which returned " + mode)
+
+                if (mode == "time_attack") {
+                    damage_modifier = 1000;
+                    player.max_health = 900;
+                    player.health = 900;
+                }
+                else damage_modifier = 1;
+            }
+        }
+    });
 
     score = 0;
     enemies_killed = 0;
@@ -243,7 +292,6 @@ function init() {
     coin_color = "white";
     
     // Weapons
-    damage_modifier = 100;
     pellets = [];
     
     hearts = [];
@@ -292,7 +340,6 @@ function init() {
     enemies = ["skull", "horse"];
     active_enemies = [];
     enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-    enemy_counter = 0;
     ash_piles = [];
     enemy_amount = 10;
     
@@ -394,8 +441,6 @@ function init() {
         available_items.splice(index, 1); // remove this item from the choice pool to prevent the same item from being offered twice, save for the extra_hearts
     }
 
-    // console.log("Shop 1's Inventory: " + shop1_inventory[0].name + ", " + shop1_inventory[1].name + ", " + shop1_inventory[2].name)
-
     // Movement
     window.addEventListener("keydown", activate, false)
     window.addEventListener("keyup", deactivate, false)
@@ -472,8 +517,10 @@ function init() {
 
 function draw() {
     game_animation = window.requestAnimationFrame(draw);
-    if (!winner && !next_round && player.health > 0) {
-        score += 1;
+    if (mode == "normal") {
+        if (!winner && !next_round && player.health > 0) {
+            score += 1;
+        }
     }
 
     fpsInterval = 50;
@@ -490,7 +537,12 @@ function draw() {
 
     // Draw Enemy Counter that will be covered over once round ends
     context.font = "20px Arial";
-    context.fillText("Enemies Remaining: " + enemy_amount, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
+    if (mode == "normal") {
+        context.fillText("Enemies Remaining: " + enemy_amount, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
+    }
+    else if (mode == "time_attack") {
+        context.fillText("Enemies Killed: " + enemies_killed, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
+    }
 
     // Draw background on canvas
     for (let r = starting_row; r < end_row; r += 1) {
@@ -547,8 +599,8 @@ function draw() {
 
     // Draw Player
     context.drawImage(playerImage,
-        player.width * player.frameX, // starting left-hand side
-        player.height * player.frameY, // starting left-hand top
+        player.width * player.frameX,
+        player.height * player.frameY,
         player.width,
         player.height,
 
@@ -565,72 +617,136 @@ function draw() {
 
 
     // Create Enemies
-    if (active_enemies.length < enemy_amount) {
-        enemy_counter += 1;
-        if (enemy_randomiser == "skull") {
-            let enemy = {
-                type : "skull",
-                image_name : enemyImage_skull,
-                max_health: 100,
-                health: 100,
-                damage: 50,
-            
-                hit_score: 20,
-                kill_score: 200,
-                coin_value: 543,
-            
-                x: canvas.width - ((canvas.width) * randint(0,1)), // from right or left-hand side
-                y: randint(50, canvas.height - 50),
-                inner_x: 7,
-                inner_y: 12,
-                inner_width: 8,
-                inner_height: 13,
-                width: 25,
-                height: 29,
-                frameX: 0,
-                frameY: 0,
-                xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
-                yChange: 2 - (4 * randint(0, 1)),
-            
-                counter: 0  // for slower animations
-            };
-            active_enemies.push(enemy);
-        }
-        else if (enemy_randomiser == "horse") {
-            let enemy = {
-                type : "horse",
-                image_name : enemyImage_horse,
-                max_health: 300,
-                health: 300,
-                damage: 100,
-            
-                hit_score: 50,
-                kill_score: 500,
-                coin_value: 250,
-            
-                x: canvas.width + 50, // from right or left-hand side
-                y: randint(50, canvas.height - 70),
-                inner_x: 8,
-                inner_y: 19,
-                inner_width: 43,
-                inner_height: 28,
-                width: 72,
-                height: 48,
-                frameX: 0,
-                frameY: 0,
-                xChange: -15,
-            
-                counter: 0  // for slower animations
+    if (mode == "normal") {
+        if (active_enemies.length < enemy_amount) {
+            if (enemy_randomiser == "skull") {
+                let enemy = {
+                    type : "skull",
+                    image_name : enemyImage_skull,
+                    max_health: 100,
+                    health: 100,
+                    damage: 50,
+                
+                    hit_score: 20,
+                    kill_score: 200,
+                    coin_value: 543,
+                
+                    x: canvas.width - ((canvas.width) * randint(0,1)), // from right or left-hand side
+                    y: randint(50, canvas.height - 50),
+                    inner_x: 7,
+                    inner_y: 12,
+                    inner_width: 8,
+                    inner_height: 13,
+                    width: 25,
+                    height: 29,
+                    frameX: 0,
+                    frameY: 0,
+                    xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
+                    yChange: 2 - (4 * randint(0, 1)),
+                
+                    counter: 0  // for slower animations
+                };
+                active_enemies.push(enemy);
             }
-            active_enemies.push(enemy);
+            else if (enemy_randomiser == "horse") {
+                let enemy = {
+                    type : "horse",
+                    image_name : enemyImage_horse,
+                    max_health: 300,
+                    health: 300,
+                    damage: 100,
+                
+                    hit_score: 50,
+                    kill_score: 500,
+                    coin_value: 250,
+                
+                    x: canvas.width + 50, // from right or left-hand side
+                    y: randint(50, canvas.height - 70),
+                    inner_x: 8,
+                    inner_y: 19,
+                    inner_width: 43,
+                    inner_height: 28,
+                    width: 72,
+                    height: 48,
+                    frameX: 0,
+                    frameY: 0,
+                    xChange: -15,
+                
+                    counter: 0  // for slower animations
+                }
+                active_enemies.push(enemy);
+            }
+            enemy_randomiser = enemies[randint(0, enemies.length - 1)];
         }
-        enemy_randomiser = enemies[randint(0, enemies.length - 1)];
-    }
         
-    // WIN Round!
-    else if (active_enemies.length == 0 && !winner && !next_round) {
-        winner = true;
+        // WIN Round!
+        else if (active_enemies.length == 0 && !winner && !next_round) {
+            winner = true;
+        }
     }
+    else if (mode == "time_attack") {
+        if (unconditional_counter % (active_enemies.length + 1 * active_enemies.length + 1) == 0) {
+            if (enemy_randomiser == "skull") {
+                let enemy = {
+                    type : "skull",
+                    image_name : enemyImage_skull,
+                    max_health: 100,
+                    health: 100,
+                    damage: 50,
+                
+                    hit_score: 20,
+                    kill_score: 200,
+                    coin_value: 543,
+                
+                    x: canvas.width - ((canvas.width) * randint(0,1)), // from right or left-hand side
+                    y: randint(50, canvas.height - 50),
+                    inner_x: 7,
+                    inner_y: 12,
+                    inner_width: 8,
+                    inner_height: 13,
+                    width: 25,
+                    height: 29,
+                    frameX: 0,
+                    frameY: 0,
+                    xChange: (2 + randint(0, 1)) - (4 * randint(0, 1)),
+                    yChange: 2 - (4 * randint(0, 1)),
+                
+                    counter: 0  // for slower animations
+                };
+                active_enemies.push(enemy);
+            }
+            else if (enemy_randomiser == "horse") {
+                let enemy = {
+                    type : "horse",
+                    image_name : enemyImage_horse,
+                    max_health: 300,
+                    health: 300,
+                    damage: 100,
+                
+                    hit_score: 50,
+                    kill_score: 500,
+                    coin_value: 250,
+                
+                    x: canvas.width + 50, // from right or left-hand side
+                    y: randint(50, canvas.height - 70),
+                    inner_x: 8,
+                    inner_y: 19,
+                    inner_width: 43,
+                    inner_height: 28,
+                    width: 72,
+                    height: 48,
+                    frameX: 0,
+                    frameY: 0,
+                    xChange: -15,
+                
+                    counter: 0  // for slower animations
+                }
+                active_enemies.push(enemy);
+            }
+            enemy_randomiser = enemies[randint(0, enemies.length - 1)];
+        } 
+    }
+
 
 
     // Draw Enemies
@@ -865,67 +981,43 @@ function draw() {
                 hearts.push(heart);
             }
         }
+
     if (player.health >= 0) {
-        let health_lost = (player.max_health - player.health)
-        switch (health_lost) {
-            case 50:
-                hearts[0].frameX = 1;
-                break;
-            case 100:
-                hearts[0].frameX = 2;
-                break;
-            case 150:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 1;
-                break;
-            case 200:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                break;
-            case 250:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                hearts[2].frameX = 1;
-                break;
-            case 300:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                hearts[2].frameX = 2;
-                break;
-            case 350:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                hearts[2].frameX = 2;
-                hearts[3].frameX = 1;
-                break;
-            case 400:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                hearts[2].frameX = 2;
-                hearts[3].frameX = 2;
-                break;
-            case 450:
-                hearts[0].frameX = 2;
-                hearts[1].frameX = 2;
-                hearts[2].frameX = 2;
-                hearts[3].frameX = 2;
-                hearts[4].frameX = 1;
-                break;
-            case 500:
-                hearts.forEach(function(heart) {
-                    heart.frameX = 2;
-                });
-                break;
-            default:
-                hearts.forEach(function(heart) {
-                    heart.frameX = 0;
-                });
+
+        while (health_lost_count > 0) {
+
+            if (health_lost_count >= 100) {
+                // if current heart is a half-heart:
+                if (hearts[heart_index].frameX == 1) {
+                    hearts[heart_index].frameX = 2;
+                    heart_index += 1;
+                    health_lost_count -= 50
+                }
+                // if current heart is empty:
+                else if (hearts[heart_index].frameX == 2) heart_index += 1
+                // if current heart is full:
+                else {
+                    hearts[heart_index].frameX = 2;
+                    heart_index += 1;
+                    health_lost_count -= 100
+                }
+            }
+            else if (health_lost_count <= 50) {
+                // if current heart is a half-heart:
+                if (hearts[heart_index].frameX == 1) {
+                    hearts[heart_index].frameX = 2;
+                    heart_index += 1;
+                    health_lost_count -= 50
+                }
+                // if current heart is empty:
+                else if (hearts[heart_index].frameX == 2) heart_index += 1
+                // if current heart is full:
+                else {
+                    hearts[heart_index].frameX = 1;
+                    health_lost_count -= 50
+                }
+            }
         }
-    }
-    else {
-        hearts.forEach(function(heart) {
-            heart.frameX = 2;
-        });
     }
 
     // Draw UI
@@ -960,24 +1052,26 @@ function draw() {
         // Score
     context.fillStyle = "white";
     context.fillText("Score: " + score, 5, 20, 100, 10);
-        // Coins
-    context.fillStyle = "black";
-    context.fillRect(5, 25, 65, 20);
-    context.drawImage(coinImage,
-                                     0,
-                                     0,
-                                     7,
-                                     8,
-                                     
-                                     10,
-                                     27,
-                                     15,
-                                     16);
-    context.fillStyle = coin_color;  // not simply set to "white" so that it can be clear to players if they don't have enough money when going to purchase an item in the shop
-    if (unconditional_counter % 30 == 0) {
-        coin_color = "white";
+    if (mode == "normal") {
+            // Coins
+        context.fillStyle = "black";
+        context.fillRect(5, 25, 65, 20);
+        context.drawImage(coinImage,
+                                        0,
+                                        0,
+                                        7,
+                                        8,
+                                        
+                                        10,
+                                        27,
+                                        15,
+                                        16);
+        context.fillStyle = coin_color;  // not simply set to "white" so that it can be clear to players if they don't have enough money when going to purchase an item in the shop
+        if (unconditional_counter % 30 == 0) {
+            coin_color = "white";
+        }
+        context.fillText(coins, 27, 42, 40)
     }
-    context.fillText(coins, 27, 42, 40)
 
 
 
@@ -1361,9 +1455,16 @@ function draw() {
                     }
                     if (player.health > 0) {
                         player_hurt_audio.play();
+                        health_lost_count = player.health;
                         player.health -= enemy.damage;
+                        health_lost_count -= player.health;
+                        if (player.health < 0) {
+                            health_lost_count = 0 - player.health;
+                            player.health = 0;
+                        }
                     }
-                    console.log("An enemy hit you! Player health is now " + player.health)
+                    console.log("A " + enemy.type + " hit you! Player health is now " + player.health)
+                    break;
             }
         }
     }
@@ -1470,7 +1571,7 @@ function activate(event) {  // 🟢
                         y: player.y + player.inner_y + player.inner_height / 2,
                         width: 2,
                         height: 2,
-                        xChange: 10,
+                        xChange: 16,
                         damage: 50
                     }
                     if (player.turned) { // Change direction of particle if facing left
