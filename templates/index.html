@@ -17,11 +17,14 @@
         <h3>Mode</h3>
         <div></div>
         <h3>Normal</h3>
-        <h3>Time Attack</h3>
+        <h3>Survival</h3>
     </section>
 
     <section id="leaderboard">
+        <a>Normal</a>
         <h1>Leaderboard</h1>
+        <a>Survival</a>
+
         <table>
             <tr>
                 <th>Name</th>
@@ -30,14 +33,23 @@
                 <th>Time Alive</th>
             </tr>
 
-            {% for player in players %}
-                <tr>
+            {% for player in normalMode_players %}
+                <tr class="normal">
                     <td>{{player['name']}}</td>
                     <td>{{player['score']}}</td>
                     <td>{{player['enemy_count']}}</td>
                     <td>{{player['time_alive']}}</td>
                 </tr>
             {% endfor %}
+
+            {% for player in survivalMode_players %}
+            <tr class="survival">
+                <td>{{player['name']}}</td>
+                <td>{{player['score']}}</td>
+                <td>{{player['enemy_count']}}</td>
+                <td>{{player['time_alive']}}</td>
+            </tr>
+        {% endfor %}
         </table>
     </section>
 

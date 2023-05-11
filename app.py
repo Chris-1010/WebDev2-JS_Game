@@ -14,9 +14,10 @@ Session(app)
 @app.route("/")
 def index():
     db = get_db()
-    players = db.execute("SELECT * FROM players ORDER BY score DESC;").fetchall()
+    normalMode_players = db.execute("SELECT * FROM players WHERE mode = 'normal' ORDER BY score DESC;").fetchall()
+    survivalMode_players = db.execute("SELECT * FROM players WHERE mode = 'survival' ORDER BY score DESC;").fetchall()
     session["mode"] = "normal"
-    return render_template("index.html", players=players)
+    return render_template("index.html", normalMode_players=normalMode_players, survivalMode_players=survivalMode_players)
 
 @app.route("/play")
 def game():
@@ -29,8 +30,8 @@ def get_mode():
 @app.route("/change_mode", methods=["POST"])
 def change_mode():
     if session["mode"] == "normal":
-        session["mode"] = "time_attack"
-    elif session["mode"] == "time_attack":
+        session["mode"] = "survival"
+    elif session["mode"] == "survival":
         session["mode"] = "normal"
     return session["mode"]
 
@@ -43,7 +44,7 @@ def store_score():
     time_alive = request.form["time_alive"]
 
     db = get_db()
-    db.execute("INSERT INTO players (name, score, enemy_count, time_alive) VALUES (?, ?, ?, ?);", (name, score, enemy_count, time_alive))
+    db.execute("INSERT INTO players (mode, name, score, enemy_count, time_alive) VALUES (?, ?, ?, ?, ?);", (session["mode"], name, score, enemy_count, time_alive))
     db.commit()
 
     return "success"

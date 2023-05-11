@@ -18,8 +18,15 @@ let heart_index = 0;
 
 
 let mode_switcher = document.querySelector("div");
+let leaderboard_mode = document.querySelectorAll("#leaderboard a");
+let normal_mode_scores = document.getElementsByClassName("normal");
+let survival_mode_scores = document.getElementsByClassName("survival");
 if (mode_switcher != null) {
-    mode_switcher.addEventListener("click", function() {
+    leaderboard_mode[0].addEventListener("click", change_mode, false);
+    mode_switcher.addEventListener("click", change_mode, false);
+ } 
+ 
+ function change_mode() {
         xhttp = new XMLHttpRequest();
         xhttp.open("POST", "change_mode", true);
         xhttp.send()
@@ -27,20 +34,33 @@ if (mode_switcher != null) {
         if (mode == "normal") {
             mode_switcher.style.setProperty("--circle_color", "orange");
             mode_switcher.style.setProperty("--Xtranslate", "300%");
-            document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 200px";
-            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 200px";
-            mode = "time_attack"
+            document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 10vw";
+            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 12vw";
+            leaderboard_mode[0].style.cssText = "opacity: 0; cursor: default;";
+            leaderboard_mode[1].style.cssText = "opacity: 1; cursor: pointer;";
+            leaderboard_mode[0].removeEventListener("click", change_mode, false);
+            leaderboard_mode[1].addEventListener("click", change_mode, false);
+            for (let score of normal_mode_scores) score.style.cssText = "height: 0; font-size: 0;";
+            for (let score of survival_mode_scores) score.style.cssText = "height: fit-content; font-size: 1em;";
+            document.querySelector("#leaderboard table").style.cssText = "background: #ffb224;"
+            mode = "survival"
         }
-        else if (mode == "time_attack") {
+        else if (mode == "survival") {
             mode_switcher.style.setProperty("--circle_color", "lime");
             mode_switcher.style.setProperty("--Xtranslate", "0");
             document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 0";
-            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 0";
+            document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 1vw";
+            leaderboard_mode[1].style.cssText = "opacity: 0; cursor: default;";
+            leaderboard_mode[0].style.cssText = "opacity: 1; cursor: pointer;";
+            leaderboard_mode[1].removeEventListener("click", change_mode, false);
+            leaderboard_mode[0].addEventListener("click", change_mode, false);
+            for (let score of survival_mode_scores) score.style.cssText = "height: 0; font-size: 0;";
+            for (let score of normal_mode_scores) score.style.cssText = "height: fit-content; font-size: 1em;";
+            document.querySelector("#leaderboard table").style.cssText = "background: #ffd079;"
             mode = "normal"
         }
         console.log("mode is now " + mode)
-    })
-}
+    }
 
 let score_display;
 let enemy_count_display;
@@ -236,7 +256,7 @@ function init() {
                 mode = xhttp.responseText;
                 console.log("reached the python function which returned " + mode)
 
-                if (mode == "time_attack") {
+                if (mode == "survival") {
                     damage_modifier = 1000;
                     player.max_health = 900;
                     player.health = 900;
@@ -540,7 +560,7 @@ function draw() {
     if (mode == "normal") {
         context.fillText("Enemies Remaining: " + enemy_amount, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
     }
-    else if (mode == "time_attack") {
+    else if (mode == "survival") {
         context.fillText("Enemies Killed: " + enemies_killed, -210 + ((unconditional_counter) % (canvas.width + 210)), canvas.height - 5);
     }
 
@@ -684,7 +704,7 @@ function draw() {
             winner = true;
         }
     }
-    else if (mode == "time_attack") {
+    else if (mode == "survival") {
         if (unconditional_counter % (active_enemies.length + 1 * active_enemies.length + 1) == 0) {
             if (enemy_randomiser == "skull") {
                 let enemy = {
@@ -983,6 +1003,12 @@ function draw() {
         }
 
     if (player.health >= 0) {
+        // if full health regained after round complete:
+        if (player.health == player.max_health) {
+            for (let heart of hearts) {
+                heart.frameX = 0;
+            }
+        }
 
         while (health_lost_count > 0) {
 
@@ -1476,6 +1502,8 @@ function draw() {
 
     if (winner) {
         player.health = player.max_health;
+        heart_index = 0;
+        
 
         if (starting_row > 0 && unconditional_counter % 5 == 0) {
             starting_row -= 1;
