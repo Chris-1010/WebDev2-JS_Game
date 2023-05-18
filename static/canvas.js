@@ -31,9 +31,10 @@ if (mode_switcher != null) {
         xhttp.open("POST", "change_mode", true);
         xhttp.send()
 
+        // Change Mode on index page
         if (mode == "normal") {
             mode_switcher.style.setProperty("--circle_color", "orange");
-            mode_switcher.style.setProperty("--Xtranslate", "300%");
+            mode_switcher.style.setProperty("--Xtranslate", "10vw");
             document.querySelector("#mode h3:nth-of-type(2)").style.cssText = "translate: 10vw";
             document.querySelector("#mode h3:nth-of-type(3)").style.cssText = "translate: 12vw";
             leaderboard_mode[0].style.cssText = "opacity: 0; cursor: default;";
